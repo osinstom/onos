@@ -1,0 +1,38 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/lisp/api:onos-protocols-lisp-api',
+    '//protocols/lisp/msg:onos-protocols-lisp-msg',
+    '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
+    '//core/store/serializers:onos-core-serializers'
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api-tests',
+    '//core/api:onos-api-tests',
+    '//lib:jersey-test-framework-core',
+    '//lib:jersey-test-framework-jetty',
+    '//utils/osgi:onlab-osgi-tests',
+    '//web/api:onos-rest-tests',
+]
+
+BUNDLES = [
+    ':onos-drivers-lisp',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.lisp',
+    title = 'LISP Device Drivers',
+    category = 'Drivers',
+    url = 'https://wiki.onosproject.org/display/ONOS/LISP+as+SBI',
+    description = 'ONOS LISP Device Drivers application.',
+    included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.lisp' ],
+)

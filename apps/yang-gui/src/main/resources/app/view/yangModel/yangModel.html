@@ -1,0 +1,50 @@
+<!-- YANG Model partial HTML -->
+<div id="ov-yang-model">
+
+    <div class="tabular-header">
+        <h2>YANG Models ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-id="refresh" icon-size="42"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+        </div>
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+                    <td colId="id" sortable>Module</td>
+                    <td colId="revision" sortable>Revision</td>
+                    <td colId="modelId" col-width="130px" sortable>Model ID</td>
+                    <!-- TODO: More columns to be added -->
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table id-prop="id">
+                <tr ng-if="!tableData.length" class="no-data">
+                    <!-- TODO: set colspan to the final number of columns -->
+                    <td colspan="2">
+                        {{annots.no_rows_msg}}
+                    </td>
+                </tr>
+
+                <tr ng-repeat="ymodel in tableData track by $index"
+                    ng-click="selectCallback($event, ymodel)"
+                    ng-class="{selected: ymodel.id === selId}"
+                    ng-repeat-complete row-id="{{ymodel.id}}">
+                    <td>{{ymodel.id}}</td>
+                    <td>{{ymodel.revision}}</td>
+                    <td>{{ymodel.modelId}}</td>
+                    <!-- TODO: add more columns here -->
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <yang-model-details-panel></yang-model-details-panel>
+
+</div>
