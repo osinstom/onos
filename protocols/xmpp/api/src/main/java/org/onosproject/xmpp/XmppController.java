@@ -8,8 +8,11 @@ import org.onosproject.net.DeviceId;
 public interface XmppController {
 
 
-    public Map<DeviceId, XmppDevice> getXmppDevicesMap();
+    void addXmppMessageListener(XmppMessageListener listener);
 
+    void removeXmppMessageListener(XmppMessageListener listener);
+
+    void processXmppMessage();
 
 
 }
