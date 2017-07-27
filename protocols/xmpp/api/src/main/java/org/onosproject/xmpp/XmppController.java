@@ -1,18 +1,18 @@
 package org.onosproject.xmpp;
 
-import org.onosproject.net.DeviceId;
-
 /**
  * Created by Tomek Osiński on 17.07.17.
  */
 public interface XmppController {
 
 
-    void addXmppMessageListener(XmppMessageListener listener);
+    void addXmppMessageListener(XmppPacketListener listener);
 
-    void removeXmppMessageListener(XmppMessageListener listener);
+    void removeXmppMessageListener(XmppPacketListener listener);
 
-    void processXmppMessage();
+    void processXmppPacket();
+
+    void writeXmppPacket();
 
 
 }
