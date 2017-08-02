@@ -1,12 +1,17 @@
 package org.onosproject.xmpp;
 
+import org.xmpp.packet.Packet;
+
 /**
- *  Notifies provides about XMPP messages.
+ *  Notifies providers about incoming XMPP packets. It should be implemented in XMPP provider.
  */
 public interface XmppPacketListener {
 
-    void handleIncomingPacket(XmppDevice xmppDevice);
-
-    void handleOutgoingPacket(XmppDevice xmppDevice);
+    /**
+     * Handles incoming XMPP packet.
+     * @param xmppDevice
+     * @param packet
+     */
+    void handleIncomingPacket(XmppDevice xmppDevice, Packet packet);
 
 }

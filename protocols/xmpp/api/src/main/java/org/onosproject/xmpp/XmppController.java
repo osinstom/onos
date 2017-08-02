@@ -1,7 +1,10 @@
 package org.onosproject.xmpp;
 
+import org.onosproject.net.DeviceId;
+import org.xmpp.packet.Packet;
+
 /**
- * Created by Tomek Osiński on 17.07.17.
+ * Controls XMPP protocol behaviour.
  */
 public interface XmppController {
 
@@ -11,8 +14,5 @@ public interface XmppController {
     void removeXmppMessageListener(XmppPacketListener listener);
 
     void processXmppPacket();
-
-    void writeXmppPacket();
-
 
 }

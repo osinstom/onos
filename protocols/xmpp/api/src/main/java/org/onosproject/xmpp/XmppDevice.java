@@ -1,12 +1,21 @@
 package org.onosproject.xmpp;
 
+import org.jboss.netty.channel.Channel;
+
 /**
- * Created by Tomek Osiński on 17.07.17.
+ * Abstraction of XMPP client.
  */
-public interface XmppDevice {
+public class XmppDevice {
 
-    void sendXmppPacket();
+    private Channel channel;
 
+    public void sendXmppPacket() {
+
+    }
+
+    public void handlePacket() {
+
+    }
 
 
 
