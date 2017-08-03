@@ -1,5 +1,8 @@
 package org.onosproject.xmpp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Dictionary;
 
 /**
@@ -7,6 +10,7 @@ import java.util.Dictionary;
  */
 public class XmppServer {
 
+    protected static final Logger logger = LoggerFactory.getLogger(XmppServer.class);
 
     /**
      * Initializes XMPP server.
@@ -16,7 +20,7 @@ public class XmppServer {
     }
 
     /**
-     * Starts XMPP server.
+     * Runs XMPP server thread.
      */
     public void run() {
 
@@ -35,6 +39,13 @@ public class XmppServer {
      */
     public void setConfiguration(Dictionary<?, ?> properties) {
 
+    }
+
+    /**
+     * Starts XMPP server.
+     */
+    public void start() {
+        logger.info("XMPP Server has started.");
     }
 
 }

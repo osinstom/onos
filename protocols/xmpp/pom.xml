@@ -15,8 +15,6 @@
     <modules>
         <module>ctl</module>
         <module>api</module>
-        <module>api</module>
-        <module>ctl</module>
     </modules>
 
     <dependencies>

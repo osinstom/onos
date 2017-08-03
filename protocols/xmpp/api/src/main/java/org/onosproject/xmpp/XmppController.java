@@ -8,10 +8,17 @@ import org.xmpp.packet.Packet;
  */
 public interface XmppController {
 
+    void addXmppMessageListener(XmppMessageListener msgListener);
 
-    void addXmppMessageListener(XmppPacketListener listener);
+    void removeXmppMessageListener(XmppMessageListener msgListener);
 
-    void removeXmppMessageListener(XmppPacketListener listener);
+    void addXmppIQListener(XmppIQListener iqListener);
+
+    void removeXmppIQListener(XmppIQListener iqListener);
+
+    void addXmppPresenceListener(XmppPresenceListener presenceListener);
+
+    void removeXmppPresenceListener(XmppPresenceListener presenceListener);
 
     void processXmppPacket();
 

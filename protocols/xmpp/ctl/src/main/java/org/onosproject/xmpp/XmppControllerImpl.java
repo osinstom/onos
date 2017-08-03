@@ -1,13 +1,16 @@
 package org.onosproject.xmpp;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.*;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
+
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * The main class (bundle) of XMPP protocol.
@@ -15,22 +18,64 @@ import org.xmpp.packet.*;
  * 1. Initialization and starting XMPP server.
  * 2. Handling XMPP packets from clients and writing to clients.
  * 3. Configuration parameters initialization.
- * 4.
+ * 4. Notifing listeners about XMPP events/packets.
  */
 @Component(immediate = true)
 @Service
 public class XmppControllerImpl implements XmppController {
 
-    // core services definition
+    private static final String APP_ID = "org.onosproject.xmpp-base";
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(XmppControllerImpl.class);
+
+    // core services declaration
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     // configuration properties definition
+
+    // listener declaration
+    protected Set<XmppIQListener> xmppIQListeners = new CopyOnWriteArraySet<XmppIQListener>();
+
+    protected Set<XmppPresenceListener> xmppPresenceListeners = new CopyOnWriteArraySet<XmppPresenceListener>();
+
+    protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
 
     private final XmppServer xmppServer = new XmppServer();
 
-
-    public void addXmppMessageListener(XmppPacketListener listener) {
+    @Activate
+    public void activate(ComponentContext context) {
+        coreService.registerApplication(APP_ID);
+        xmppServer.start();
     }
 
-    public void removeXmppMessageListener(XmppPacketListener listener) {
+    @Deactivate
+    public void deactivate() {
+        
+    }
+
+    public void addXmppMessageListener(XmppMessageListener msgListener) {
+
+    }
+
+    public void removeXmppMessageListener(XmppMessageListener msgListener) {
+
+    }
+
+    public void addXmppIQListener(XmppIQListener iqListener) {
+
+    }
+
+    public void removeXmppIQListener(XmppIQListener iqListener) {
+
+    }
+
+    public void addXmppPresenceListener(XmppPresenceListener presenceListener) {
+
+    }
+
+    public void removeXmppPresenceListener(XmppPresenceListener presenceListener) {
 
     }
 
