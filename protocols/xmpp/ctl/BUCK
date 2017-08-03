@@ -1,6 +1,7 @@
 COMPILE_DEPS = [
-'//lib:CORE_DEPS',
-'//protocols/xmpp/api:onos-protocols-xmpp-api',
+    '//lib:CORE_DEPS',
+    '//lib:tinder-xmpp',
+    '//protocols/xmpp/api:onos-protocols-xmpp-api',
 ]
 
 TEST_DEPS = [
