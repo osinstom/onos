@@ -1,0 +1,9 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/xmpp/api:onos-protocols-xmpp-api',
+    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)

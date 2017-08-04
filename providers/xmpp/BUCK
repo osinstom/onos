@@ -1,0 +1,14 @@
+BUNDLES = [
+    '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
+    '//protocols/xmpp/api:onos-protocols-xmpp-api',
+    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+]
+
+onos_app (
+    app_name = 'org.onosproject.xmpp',
+    title = 'XMPP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'XMPP protocol southbound providers.',
+)
