@@ -1,9 +1,9 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:tinder-xmpp',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
-    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
 ]
 
-osgi_jar (
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
 )

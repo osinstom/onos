@@ -19,7 +19,7 @@
         <onos.app.category>Provider</onos.app.category>
     </properties>
 
-    <description>TL1 protocol southbound providers</description>
+    <description>XMPP protocol southbound providers</description>
 
     
 </project>

@@ -128,6 +128,7 @@ ONOS_PROVIDERS = [
     '//providers/link:onos-providers-link-oar',
     '//providers/lisp:onos-providers-lisp-oar',
     '//providers/tl1:onos-providers-tl1-oar',
+    '//providers/xmpp:onos-providers-xmpp-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
 ]
 

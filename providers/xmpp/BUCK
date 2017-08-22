@@ -1,8 +1,21 @@
-BUNDLES = [
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:tinder-xmpp',
     '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
+]
+
+BUNDLES = [
+    '//lib:tinder-xmpp',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
     '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+    '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
 ]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    import_packages = '*,org.xmpp.packet',
+)
+
 
 onos_app (
     app_name = 'org.onosproject.xmpp',
