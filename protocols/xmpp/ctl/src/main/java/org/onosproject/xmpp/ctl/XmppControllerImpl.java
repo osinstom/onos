@@ -1,6 +1,7 @@
 package org.onosproject.xmpp.ctl;
 
 import org.apache.felix.scr.annotations.*;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.xmpp.*;
@@ -25,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class XmppControllerImpl implements XmppController {
 
     private static final String APP_ID = "org.onosproject.xmpp";
+    private static final String XMPP_PORT = "5269";
 
     private static final Logger logger =
             LoggerFactory.getLogger(XmppControllerImpl.class);
@@ -33,7 +35,14 @@ public class XmppControllerImpl implements XmppController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     // configuration properties definition
+    @Property(name = "xmppPort", value = XMPP_PORT,
+            label = "Port number used by XMPP protocol; default is 5269")
+    private String xmppPort = XMPP_PORT;
+
 
     // listener declaration
     protected Set<XmppIQListener> xmppIQListeners = new CopyOnWriteArraySet<XmppIQListener>();
@@ -42,10 +51,15 @@ public class XmppControllerImpl implements XmppController {
 
     protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
 
+    private final XmppServer xmppServer = new XmppServer();
+
     @Activate
     public void activate(ComponentContext context) {
         logger.info("XmppControllerImpl started.");
         coreService.registerApplication(APP_ID);
+        cfgService.registerProperties(getClass());
+        xmppServer.setConfiguration(context.getProperties());
+        xmppServer.start();
     }
 
     @Deactivate
