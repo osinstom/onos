@@ -1,8 +1,5 @@
 package org.onosproject.xmpp;
 
-import org.onosproject.net.DeviceId;
-import org.xmpp.packet.Packet;
-
 /**
  * Controls XMPP protocol behaviour.
  */

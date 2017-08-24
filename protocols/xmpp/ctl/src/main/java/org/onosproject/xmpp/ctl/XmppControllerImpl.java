@@ -1,9 +1,9 @@
-package org.onosproject.xmpp;
+package org.onosproject.xmpp.ctl;
 
 import org.apache.felix.scr.annotations.*;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.xmpp.*;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Service
 public class XmppControllerImpl implements XmppController {
 
-    private static final String APP_ID = "org.onosproject.xmpp-base";
+    private static final String APP_ID = "org.onosproject.xmpp";
 
     private static final Logger logger =
             LoggerFactory.getLogger(XmppControllerImpl.class);
@@ -42,12 +42,10 @@ public class XmppControllerImpl implements XmppController {
 
     protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
 
-    private final XmppServer xmppServer = new XmppServer();
-
     @Activate
     public void activate(ComponentContext context) {
+        logger.info("XmppControllerImpl started.");
         coreService.registerApplication(APP_ID);
-        xmppServer.start();
     }
 
     @Deactivate

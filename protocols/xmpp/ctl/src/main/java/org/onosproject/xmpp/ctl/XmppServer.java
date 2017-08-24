@@ -1,4 +1,4 @@
-package org.onosproject.xmpp;
+package org.onosproject.xmpp.ctl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

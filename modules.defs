@@ -76,7 +76,7 @@ CORE = UTILS + API + [
     '//providers/isis/topology:onos-providers-isis-topology',
     '//providers/lisp/device:onos-providers-lisp-device',
     '//providers/tl1/device:onos-providers-tl1-device',
-    '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
+    '//providers/xmpp/device:onos-providers-xmpp-device',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',

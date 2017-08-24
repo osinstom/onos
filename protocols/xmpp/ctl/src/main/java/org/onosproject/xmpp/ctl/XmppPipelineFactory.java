@@ -1,4 +1,4 @@
-package org.onosproject.xmpp;
+package org.onosproject.xmpp.ctl;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
