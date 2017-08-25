@@ -131,5 +131,10 @@ public class XmppServer {
         this.run();
     }
 
+    /**
+     * Stops XMPP server.
+     */
+    public void stop() {
 
+    }
 }

@@ -64,7 +64,9 @@ public class XmppControllerImpl implements XmppController {
 
     @Deactivate
     public void deactivate() {
-        
+        xmppServer.stop();
+        cfgService.unregisterProperties(getClass(), false);
+        logger.info("Stopped");
     }
 
     public void addXmppMessageListener(XmppMessageListener msgListener) {
