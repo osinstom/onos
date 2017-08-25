@@ -111,21 +111,5 @@ public class XmppControllerImpl implements XmppController {
     }
 
 
-    /**
-     * XMPP message handler.
-     */
-    protected final class XmppPacketHandler implements Runnable {
 
-        protected final DeviceId deviceId;
-        protected final Packet xmppPacket;
-
-        public XmppPacketHandler(DeviceId deviceId, Packet xmppPacket) {
-            this.deviceId = deviceId;
-            this.xmppPacket = xmppPacket;
-        }
-
-        public void run() {
-
-        }
-    }
 }

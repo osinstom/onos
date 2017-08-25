@@ -1,6 +1,19 @@
 package org.onosproject.xmpp.ctl;
 
 import com.google.common.base.Strings;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.AbstractChannel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -26,8 +39,9 @@ public class XmppServer {
 
     protected Integer port = 5259;
 
-    private NioServerSocketChannelFactory execFactory;
-    private Channel channel;
+    private ChannelFuture channelFuture;
+    private EventLoopGroup eventLoopGroup;
+    private Class<? extends AbstractChannel> channelClass;
 
 
     /**
@@ -42,13 +56,10 @@ public class XmppServer {
      */
     public void run() {
         try {
-            final ServerBootstrap bootstrap = createServerBootStrap();
-
-            ChannelPipelineFactory channelPipelineFactory = new XmppPipelineFactory(this);
-            bootstrap.setPipelineFactory(channelPipelineFactory);
+            final Bootstrap bootstrap = createServerBootStrap();
 
             InetSocketAddress socketAddress = new InetSocketAddress(port);
-            channel = bootstrap.bind(socketAddress);
+            channelFuture = bootstrap.bind(socketAddress).sync();
 
             logger.info("Listening for device connections on {}", socketAddress);
 
@@ -57,18 +68,40 @@ public class XmppServer {
         }
     }
 
-    private ServerBootstrap createServerBootStrap() {
-        execFactory = new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", logger)),
-                Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", logger)));
+    private Bootstrap createServerBootStrap() {
 
-        ServerBootstrap bootstrap = new ServerBootstrap(execFactory);
-        bootstrap.setOption("reuseAddr", true);
-        bootstrap.setOption("child.keepAlive", true);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.sendBufferSize", SEND_BUFFER_SIZE);
+        Bootstrap bootstrap = new Bootstrap();
+        configureBootstrap(bootstrap);
+        initEventLoopGroup();
+
+        bootstrap.group(eventLoopGroup)
+                .channel(channelClass)
+                .handler(new XmppChannelInitializer(this));
 
         return bootstrap;
+    }
+
+    /**
+     * Initializes event loop group.
+     */
+    private void initEventLoopGroup() {
+
+        // try to use EpollEventLoopGroup if possible,
+        // if OS does not support native Epoll, fallback to use netty NIO
+        try {
+            eventLoopGroup = new EpollEventLoopGroup();
+            channelClass = EpollServerSocketChannel.class;
+        } catch (NoClassDefFoundError e) {
+            logger.debug("Failed to initialize native (epoll) transport. "
+                    + "Reason: {}. Proceeding with NIO event group.", e);
+        }
+        eventLoopGroup = new NioEventLoopGroup();
+        channelClass = NioServerSocketChannel.class;
+    }
+
+    private void configureBootstrap(Bootstrap bootstrap) {
+        bootstrap.option(ChannelOption.TCP_NODELAY, true);
+        bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 
     /**
