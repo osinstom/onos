@@ -3,6 +3,8 @@ BUNDLES = [
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
     '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
     '//lib:tinder-xmpp',
+    '//lib:stax2-api',
+    '//lib:aalto-xml',
 ]
 
 onos_app (

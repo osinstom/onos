@@ -4,7 +4,6 @@ package org.onosproject.xmpp.ctl;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.ServerSocketChannel;
-import io.netty.handler.codec.xml.XmlDecoder;
 import io.netty.handler.codec.xml.XmlFrameDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class XmppChannelInitializer extends ChannelInitializer<ServerSocketChann
 
     public XmppChannelInitializer(XmppServer server) {
         this.xmppServer = server;
-
     }
 
     /**
@@ -36,7 +34,7 @@ public class XmppChannelInitializer extends ChannelInitializer<ServerSocketChann
 
         XmppChannelHandler handler = new XmppChannelHandler();
         // TODO: try add XmlDecoder to pipeline as it has better performance, uses FasterXML Aalto.
-        pipeline.addLast("xmppdecoder", new XmlFrameDecoder(1024875));
+        pipeline.addLast("xmppdecoder", new XmppDecoder());
 //        pipeline.addLast("xmppencoder",
         pipeline.addLast("handler", handler);
 

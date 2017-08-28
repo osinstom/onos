@@ -17,7 +17,7 @@
 
     <modules>
         <module>app</module>
-        <module>pubsub</module>
+        <module>device</module>
     </modules>
 
 </project>

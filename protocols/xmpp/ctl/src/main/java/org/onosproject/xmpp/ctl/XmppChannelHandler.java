@@ -26,10 +26,10 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
-        logger.info(msg.toString());
+        final ByteBuf buffer = (ByteBuf)msg;
+//        logger.info(msg.toString());
         //prints out String representation of xml doc
-//        logger.info("read : {}" + buffer.toString((CharsetUtil.UTF_8)));
+        logger.info("read : {}" + buffer.toString((CharsetUtil.UTF_8)));
 
 //        executorService.execute(new XmppPacketHandler(ctx, (Packet) msg));
     }
@@ -47,7 +47,6 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
             this.xmppPacket = xmppPacket;
         }
 
-        @Override
         public void run() {
             // TODO: implement XMPP packet handling
         }

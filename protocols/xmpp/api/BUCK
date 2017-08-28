@@ -1,6 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
+    '//lib:aalto-xml',
 ]
 
 osgi_jar_with_tests (
