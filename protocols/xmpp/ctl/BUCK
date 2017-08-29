@@ -9,10 +9,7 @@ COMPILE_DEPS = [
     '//lib:netty-transport-native-epoll',
     '//lib:netty-handler',
     '//lib:netty-resolver',
-#     '//lib:javax-xml-stream',
-#     '//lib:netty-all',
-# #     '//lib:stax',
-# #     '//lib:javax-xml-parsers',
+    '//lib:org.apache.servicemix.bundles.dom4j',
     '//lib:stax2-api',
     '//lib:aalto-xml',
 ]

@@ -1,6 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
+    '//lib:org.dom4j',
     '//incubator/api:onos-incubator-api',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
     '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',

@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
+import org.dom4j.Document;
 import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,16 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+        if (msg instanceof Document) {
+            logger.info("Document read");
+        }
+
 //        final ByteBuf buffer = (ByteBuf)msg;
 ////        logger.info(msg.toString());
 //        //prints out String representation of xml doc
 //        logger.info("read : {}" + buffer.toString((CharsetUtil.UTF_8)));
-          logger.info("READ: " + (String) msg);
+          logger.info("READ: " + msg);
 //        executorService.execute(new XmppPacketHandler(ctx, (Packet) msg));
     }
 
