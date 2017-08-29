@@ -14,8 +14,10 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.*;
+import javax.xml.stream.events.XMLEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,7 +28,6 @@ public class XmppDecoder extends ByteToMessageDecoder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final AsyncXMLInputFactory XML_INPUT_FACTORY = new InputFactoryImpl();
-//    private static final XmlDocumentEnd XML_DOCUMENT_END = XmlDocumentEnd.INSTANCE;
 
     private final AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
     private final AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
@@ -34,6 +35,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
+        List<XMLEvent> events = new ArrayList<XMLEvent>();
         byte[] buffer = new byte[in.readableBytes()];
         in.readBytes(buffer);
         try {

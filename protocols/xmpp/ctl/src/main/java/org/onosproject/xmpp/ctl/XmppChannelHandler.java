@@ -26,11 +26,11 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        final ByteBuf buffer = (ByteBuf)msg;
-//        logger.info(msg.toString());
-        //prints out String representation of xml doc
-        logger.info("read : {}" + buffer.toString((CharsetUtil.UTF_8)));
-
+//        final ByteBuf buffer = (ByteBuf)msg;
+////        logger.info(msg.toString());
+//        //prints out String representation of xml doc
+//        logger.info("read : {}" + buffer.toString((CharsetUtil.UTF_8)));
+          logger.info("READ: " + (String) msg);
 //        executorService.execute(new XmppPacketHandler(ctx, (Packet) msg));
     }
 

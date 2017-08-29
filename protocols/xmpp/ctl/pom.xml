@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.14.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
         </dependency>
         <dependency>
@@ -47,6 +52,12 @@
             <groupId>com.fasterxml</groupId>
             <artifactId>aalto-xml</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/javax.xml.stream/stax-api -->
+        <dependency>
+            <groupId>javax.xml.stream</groupId>
+            <artifactId>stax-api</artifactId>
+            <version>1.0</version>
         </dependency>
 
     </dependencies>

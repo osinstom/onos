@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
+    '//lib:javax-xml-stream',
+    '//lib:stax2-api',
     '//lib:aalto-xml',
 ]
 

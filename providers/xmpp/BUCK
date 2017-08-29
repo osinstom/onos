@@ -2,7 +2,15 @@ BUNDLES = [
     '//providers/xmpp/device:onos-providers-xmpp-device',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
     '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+    '//lib:netty-buffer',
+    '//lib:netty-codec-xml',
+    '//lib:netty-codec',
+    '//lib:netty-transport',
+    '//lib:netty-transport-native-epoll',
+    '//lib:netty-handler',
+    '//lib:netty-resolver',
     '//lib:tinder-xmpp',
+    '//lib:javax-xml-stream',
     '//lib:stax2-api',
     '//lib:aalto-xml',
 ]
@@ -14,4 +22,13 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'XMPP protocol southbound providers.',
+)
+
+remote_jar (
+    name = 'javax-xml-stream',
+    out = 'stax-api-1.0.jar',
+    url = 'mvn:javax.xml.stream:stax-api:jar:1.0',
+    sha1 = 'a5be00d58ecaf5b01037b149f70e93ebcfb18fd1',
+    maven_coords = 'javax.xml.stream:stax-api:jar:NON-OSGI:1.0',
+    visibility = [ 'PUBLIC' ],
 )
