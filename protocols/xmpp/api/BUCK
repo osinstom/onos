@@ -3,7 +3,6 @@ COMPILE_DEPS = [
     '//lib:tinder-xmpp',
     '//lib:stax2-api',
     '//lib:aalto-xml',
-    '//lib:org.dom4j',
 ]
 
 osgi_jar_with_tests (

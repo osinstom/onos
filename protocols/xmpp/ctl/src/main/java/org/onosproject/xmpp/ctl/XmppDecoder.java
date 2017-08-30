@@ -14,10 +14,13 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
+import org.dom4j.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +43,9 @@ public class XmppDecoder extends ByteToMessageDecoder {
         in.readBytes(buffer);
         try {
             streamFeeder.feedInput(buffer, 0, buffer.length);
-        } catch (Exception exception) {
+        } catch (XMLStreamException exception) {
             in.skipBytes(in.readableBytes());
+            logger.info("Bytes skipped");
             throw exception;
         }
 
@@ -53,17 +57,37 @@ public class XmppDecoder extends ByteToMessageDecoder {
             int type = streamReader.next();
             switch (type) {
                 case XMLStreamConstants.START_DOCUMENT:
-                    logger.debug("START DOCUMENT");
+                    logger.info("START DOCUMENT");
                     break;
                 case XMLStreamConstants.END_DOCUMENT:
-                    logger.debug("End of XML document");
-                    out.add(document);
+                    logger.info("End of XML document");
+                    logger.info(document.getRootElement().asXML());
                     break;
                 case XMLStreamConstants.START_ELEMENT:
-                    logger.debug("Start element");
-                    for (int i = 0; i < streamReader.getAttributeCount(); i++) {
-                        logger.info("attr1: " + streamReader.getAttributeName(i));
+                    logger.info("Start element");
+                    QName qname = (streamReader.getPrefix() == null) ?
+                            df.createQName(streamReader.getLocalName(), streamReader.getNamespaceURI()) :
+                            df.createQName(streamReader.getLocalName(), streamReader.getPrefix(), streamReader.getNamespaceURI());
+
+                    // TODO: Check if new element is IQ, Message or Presence. Ignore otherwise.
+                    Element newElement = df.createElement(qname);
+
+                    // add all relevant XML namespaces to Element
+                    for (int x = 0; x < streamReader.getNamespaceCount(); x++) {
+                        newElement.addNamespace(streamReader.getNamespacePrefix(x), streamReader.getNamespaceURI(x));
                     }
+                    // add all attributes to Element
+                    for (int i = 0; i < streamReader.getAttributeCount(); i++) {
+                        logger.info("Adding attr: " + streamReader.getAttributeName(i));
+                        newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
+                    }
+                    if (parent != null) {
+                        parent.add(newElement);
+                    }
+                    else {
+                        document.add(newElement);
+                    }
+                    parent = newElement;
                     break;
                 case XMLStreamConstants.END_ELEMENT:
                     break;
@@ -86,5 +110,6 @@ public class XmppDecoder extends ByteToMessageDecoder {
             }
         }
 
+        out.add(document);
     }
 }
