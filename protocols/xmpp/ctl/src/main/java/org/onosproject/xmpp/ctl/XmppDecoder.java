@@ -62,6 +62,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                 case XMLStreamConstants.END_DOCUMENT:
                     logger.info("End of XML document");
                     logger.info(document.getRootElement().asXML());
+                    out.add(document);
                     break;
                 case XMLStreamConstants.START_ELEMENT:
                     logger.info("Start element");
@@ -88,28 +89,35 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         document.add(newElement);
                     }
                     parent = newElement;
+                    logger.info(document.getRootElement().asXML());
                     break;
                 case XMLStreamConstants.END_ELEMENT:
+                    logger.info("END ELEMENT");
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.PROCESSING_INSTRUCTION:
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.CHARACTERS:
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.COMMENT:
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.SPACE:
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.ENTITY_REFERENCE:
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.DTD:
-
+                    // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.CDATA:
-
+                    // TODO: Implement if needed.
                     break;
             }
         }
-
         out.add(document);
     }
 }

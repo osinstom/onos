@@ -31,7 +31,6 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
         if (msg instanceof Document) {
             logger.info("Document read");
             Document xmlDoc = (Document) msg;
@@ -49,7 +48,7 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
                 // do not parse XML data if it is not XMPP
                 return;
             }
-//            executorService.execute(new XmppPacketHandler(ctx, packet));
+            executorService.execute(new XmppPacketHandler(ctx, packet));
         }
     }
 
@@ -57,7 +56,6 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         logger.warn(cause.getMessage());
-
         //TODO: add error handle mechanisms for each cases
     }
 
@@ -76,7 +74,7 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
         public void run() {
             // TODO: implement XMPP packet handling
-
+            logger.info("Executing.");
         }
     }
 
