@@ -1,5 +1,6 @@
 package org.onosproject.xmpp;
 
+import org.onosproject.xmpp.driver.AbstractXmppDevice;
 import org.xmpp.packet.Message;
 
 /**
@@ -12,13 +13,13 @@ public interface XmppMessageListener {
      * @param device
      * @param message
      */
-    void handleIncomingXmppMessage(XmppDevice device, Message message);
+    void handleIncomingXmppMessage(AbstractXmppDevice device, Message message);
 
     /**
      * Handles outgoing XMPP Message packets.
      * @param device
      * @param message
      */
-    void handleOutgoingXmppMessage(XmppDevice device, Message message);
+    void handleOutgoingXmppMessage(AbstractXmppDevice device, Message message);
 
 }

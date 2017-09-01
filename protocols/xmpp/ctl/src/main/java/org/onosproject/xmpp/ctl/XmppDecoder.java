@@ -57,15 +57,15 @@ public class XmppDecoder extends ByteToMessageDecoder {
             int type = streamReader.next();
             switch (type) {
                 case XMLStreamConstants.START_DOCUMENT:
-                    logger.info("START DOCUMENT");
+//                    logger.info("START DOCUMENT");
                     break;
                 case XMLStreamConstants.END_DOCUMENT:
-                    logger.info("End of XML document");
+//                    logger.info("End of XML document");
                     logger.info(document.getRootElement().asXML());
                     out.add(document);
                     break;
                 case XMLStreamConstants.START_ELEMENT:
-                    logger.info("Start element");
+//                    logger.info("Start element");
                     QName qname = (streamReader.getPrefix() == null) ?
                             df.createQName(streamReader.getLocalName(), streamReader.getNamespaceURI()) :
                             df.createQName(streamReader.getLocalName(), streamReader.getPrefix(), streamReader.getNamespaceURI());
@@ -79,7 +79,6 @@ public class XmppDecoder extends ByteToMessageDecoder {
                     }
                     // add all attributes to Element
                     for (int i = 0; i < streamReader.getAttributeCount(); i++) {
-                        logger.info("Adding attr: " + streamReader.getAttributeName(i));
                         newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
                     }
                     if (parent != null) {
@@ -89,10 +88,10 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         document.add(newElement);
                     }
                     parent = newElement;
-                    logger.info(document.getRootElement().asXML());
+
                     break;
                 case XMLStreamConstants.END_ELEMENT:
-                    logger.info("END ELEMENT");
+//                    logger.info("END ELEMENT");
                     // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.PROCESSING_INSTRUCTION:

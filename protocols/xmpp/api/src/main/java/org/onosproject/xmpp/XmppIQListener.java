@@ -1,5 +1,6 @@
 package org.onosproject.xmpp;
 
+import org.onosproject.xmpp.driver.AbstractXmppDevice;
 import org.xmpp.packet.IQ;
 
 /**
@@ -12,13 +13,13 @@ public interface XmppIQListener {
      * @param xmppDevice
      * @param iq
      */
-    void handleIncomingIQ(XmppDevice xmppDevice, IQ iq);
+    void handleIncomingIQ(AbstractXmppDevice xmppDevice, IQ iq);
 
     /**
      * Handles outgoing XMPP IQ packet.
      * @param xmppDevice
      * @param iq
      */
-    void handleOutgoingIQ(XmppDevice xmppDevice, IQ iq);
+    void handleOutgoingIQ(AbstractXmppDevice xmppDevice, IQ iq);
 
 }

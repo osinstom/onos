@@ -3,7 +3,6 @@ package org.onosproject.xmpp.ctl;
 import org.apache.felix.scr.annotations.*;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.DeviceId;
 import org.onosproject.xmpp.*;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -97,18 +96,12 @@ public class XmppControllerImpl implements XmppController {
 
     }
 
-    private class XmppSessionHandler implements XmppSession {
+    private class XmppSessionHandler implements Runnable {
 
-        public void addConnectedXmppDevice(XmppDevice xmppDevice) {
 
-        }
-
-        public void removeConnectedXmppDevice(XmppDevice xmppDevice) {
-
-        }
-
-        public void processXmppPacket(Packet packet) {
-
+        @Override
+        public void run() {
+            
         }
     }
 

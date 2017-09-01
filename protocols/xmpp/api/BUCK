@@ -1,8 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
-    '//lib:stax2-api',
-    '//lib:aalto-xml',
+    '//lib:netty-transport',
 ]
 
 osgi_jar_with_tests (

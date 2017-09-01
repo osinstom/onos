@@ -1,5 +1,6 @@
 package org.onosproject.xmpp;
 
+import org.onosproject.xmpp.driver.AbstractXmppDevice;
 import org.xmpp.packet.Packet;
 
 /**
@@ -11,13 +12,13 @@ public interface XmppSession {
      * Adds newly connected XMPP device to global XMPP device store.
      * @param xmppDevice
      */
-    void addConnectedXmppDevice(XmppDevice xmppDevice);
+    void addConnectedXmppDevice(AbstractXmppDevice xmppDevice);
 
     /**
      * Removes disconnected XMPP device from global XMPP device store.
      * @param xmppDevice
      */
-    void removeConnectedXmppDevice(XmppDevice xmppDevice);
+    void removeConnectedXmppDevice(AbstractXmppDevice xmppDevice);
 
     /**
      *

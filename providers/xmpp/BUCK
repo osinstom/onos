@@ -12,6 +12,7 @@ BUNDLES = [
     '//lib:tinder-xmpp',
     '//lib:stax2-api',
     '//lib:aalto-xml',
+    '//lib:concurrent-hashmap',
 #     '//lib:org.dom4j',
     '//lib:org.apache.servicemix.bundles.dom4j',
 ]

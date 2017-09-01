@@ -1,22 +1,24 @@
 package org.onosproject.xmpp;
 
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
+import org.xmpp.packet.Packet;
+
+
 
 /**
- * Abstraction of XMPP client.
+ * Abstracts XMPP device.
  */
-public class XmppDevice {
+public interface XmppDevice {
 
-    private Channel channel;
+    /**
+     * Sets the associated Netty channel for this device.
+     *
+     * @param channel the Netty channel
+     */
+    void setChannel(Channel channel);
 
-    public void sendXmppPacket() {
+    void sendPacket(Packet packet);
 
-    }
-
-    public void handlePacket() {
-
-    }
-
-
+    void handlePacket(Packet packet);
 
 }

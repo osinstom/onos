@@ -16,6 +16,14 @@
             <artifactId>tinder</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
