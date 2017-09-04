@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
     '//lib:concurrent-hashmap',
+    '//lib:gnu-idn',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
     '//lib:netty-buffer',
     '//lib:netty-codec-xml',

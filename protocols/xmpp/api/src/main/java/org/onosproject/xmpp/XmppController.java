@@ -5,17 +5,9 @@ package org.onosproject.xmpp;
  */
 public interface XmppController {
 
-    void addXmppMessageListener(XmppMessageListener msgListener);
+    void addXmppDeviceListener(XmppDeviceListener deviceListener);
 
-    void removeXmppMessageListener(XmppMessageListener msgListener);
-
-    void addXmppIQListener(XmppIQListener iqListener);
-
-    void removeXmppIQListener(XmppIQListener iqListener);
-
-    void addXmppPresenceListener(XmppPresenceListener presenceListener);
-
-    void removeXmppPresenceListener(XmppPresenceListener presenceListener);
+    void removeXmppDeviceListener(XmppDeviceListener deviceListener);
 
     void processXmppPacket();
 

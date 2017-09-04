@@ -1,16 +1,20 @@
 package org.onosproject.xmpp.ctl;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.*;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.xmpp.*;
+import org.onosproject.xmpp.driver.XmppDeviceManager;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xmpp.packet.*;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * The main class (bundle) of XMPP protocol.
@@ -44,13 +48,13 @@ public class XmppControllerImpl implements XmppController {
 
 
     // listener declaration
-    protected Set<XmppIQListener> xmppIQListeners = new CopyOnWriteArraySet<XmppIQListener>();
+    protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();
 
-    protected Set<XmppPresenceListener> xmppPresenceListeners = new CopyOnWriteArraySet<XmppPresenceListener>();
-
-    protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
+    protected XmppDeviceManager agent = new DefaultXmppDeviceManager();
 
     private final XmppServer xmppServer = new XmppServer();
+
+    ConcurrentMap<XmppDeviceId, XmppDevice> connectedDevices = Maps.newConcurrentMap();
 
     @Activate
     public void activate(ComponentContext context) {
@@ -68,43 +72,47 @@ public class XmppControllerImpl implements XmppController {
         logger.info("Stopped");
     }
 
-    public void addXmppMessageListener(XmppMessageListener msgListener) {
+
+    @Override
+    public void addXmppDeviceListener(XmppDeviceListener deviceListener) {
 
     }
 
-    public void removeXmppMessageListener(XmppMessageListener msgListener) {
+    @Override
+    public void removeXmppDeviceListener(XmppDeviceListener deviceListener) {
 
     }
 
-    public void addXmppIQListener(XmppIQListener iqListener) {
-
-    }
-
-    public void removeXmppIQListener(XmppIQListener iqListener) {
-
-    }
-
-    public void addXmppPresenceListener(XmppPresenceListener presenceListener) {
-
-    }
-
-    public void removeXmppPresenceListener(XmppPresenceListener presenceListener) {
-
-    }
-
+    @Override
     public void processXmppPacket() {
 
     }
 
-    private class XmppSessionHandler implements Runnable {
+    private class DefaultXmppDeviceManager implements XmppDeviceManager {
 
+        private final Logger logger = getLogger(DefaultXmppDeviceManager.class);
 
         @Override
-        public void run() {
-            
+        public boolean addConnectedDevice(XmppDeviceId deviceId, XmppDevice device) {
+            if (connectedDevices.get(deviceId) != null) {
+                logger.warn("Trying to add Xmpp Device but found a previous " +
+                        "value for XMPP deviceId: {}", deviceId);
+                return false;
+            } else {
+                logger.info("Added XMPP device: {}", deviceId);
+                connectedDevices.put(deviceId, device);
+                for(XmppDeviceListener listener : xmppDeviceListeners)
+                    listener.deviceConnected(deviceId);
+                return true;
+            }
         }
-    }
 
+        @Override
+        public void removeConnectedDevice(XmppDeviceId deviceId) {
+
+        }
+
+    }
 
 
 }

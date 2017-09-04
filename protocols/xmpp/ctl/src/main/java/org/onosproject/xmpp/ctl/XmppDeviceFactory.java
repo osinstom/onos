@@ -19,7 +19,7 @@ public class XmppDeviceFactory {
     private static XmppDeviceFactory INSTANCE = null;
 
     public static  XmppDeviceFactory getInstance() {
-        if(INSTANCE != null)
+        if(INSTANCE == null)
             INSTANCE = new XmppDeviceFactory();
         return INSTANCE;
     }

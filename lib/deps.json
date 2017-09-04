@@ -235,6 +235,7 @@
 //    "javax-xml-namespace": "mvn:javax.xml:namespace:1.0.1",
     "javax-xml-parsers": "mvn:javax.xml.parsers:jaxp-api:1.4.5",
     "stax": "mvn:stax:stax-api:1.0.1",
-    "concurrent-hashmap": "mvn:com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:1.0_jdk5"
+    "concurrent-hashmap": "mvn:com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:1.0",
+    "gnu-idn": "mvn:org.gnu.inet:libidn:1.15"
   }
 }

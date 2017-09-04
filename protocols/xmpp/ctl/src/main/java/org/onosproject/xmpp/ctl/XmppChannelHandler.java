@@ -90,6 +90,7 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
             Packet packet = getXmppPacket(root);
             checkNotNull(packet);
             JID jid = packet.getFrom();
+
             XmppDevice device = factory.getXmppDeviceInstance(jid);
             device.setChannel(ctx.channel());
             device.handlePacket(packet);

@@ -13,6 +13,7 @@ BUNDLES = [
     '//lib:stax2-api',
     '//lib:aalto-xml',
     '//lib:concurrent-hashmap',
+    '//lib:gnu-idn',
 #     '//lib:org.dom4j',
     '//lib:org.apache.servicemix.bundles.dom4j',
 ]
