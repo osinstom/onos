@@ -1,6 +1,9 @@
 package org.onosproject.xmpp;
 
 import io.netty.channel.Channel;
+import org.dom4j.Document;
+import org.onosproject.xmpp.driver.XmppDeviceManager;
+import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 
 
@@ -17,8 +20,24 @@ public interface XmppDevice {
      */
     void setChannel(Channel channel);
 
+    void setJID(JID jid);
+
+    void setManager(XmppDeviceManager manager);
+
+    void connectDevice();
+
+    void disconnectDevice();
+
     void sendPacket(Packet packet);
+
+    /**
+     * Method for sending raw XML data as XMPP packet.
+     *
+     * @param document the XML data
+     */
+    void writeRawXml(Document document);
 
     void handlePacket(Packet packet);
 
+    void init(XmppDeviceId xmppDeviceId);
 }

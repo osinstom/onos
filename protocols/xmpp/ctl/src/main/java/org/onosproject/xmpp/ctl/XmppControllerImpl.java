@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.*;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.xmpp.*;
 import org.onosproject.xmpp.driver.XmppDeviceManager;
 import org.osgi.service.component.ComponentContext;
@@ -41,6 +42,9 @@ public class XmppControllerImpl implements XmppController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
     // configuration properties definition
     @Property(name = "xmppPort", value = XMPP_PORT,
             label = "Port number used by XMPP protocol; default is 5269")
@@ -50,9 +54,10 @@ public class XmppControllerImpl implements XmppController {
     // listener declaration
     protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();
 
-    protected XmppDeviceManager agent = new DefaultXmppDeviceManager();
+    protected XmppDeviceManager manager = new DefaultXmppDeviceManager();
 
     private final XmppServer xmppServer = new XmppServer();
+    private XmppDeviceFactory deviceFactory = XmppDeviceFactory.getInstance();
 
     ConcurrentMap<XmppDeviceId, XmppDevice> connectedDevices = Maps.newConcurrentMap();
 
@@ -61,6 +66,7 @@ public class XmppControllerImpl implements XmppController {
         logger.info("XmppControllerImpl started.");
         coreService.registerApplication(APP_ID);
         cfgService.registerProperties(getClass());
+        deviceFactory.init(manager, driverService);
         xmppServer.setConfiguration(context.getProperties());
         xmppServer.start();
     }
@@ -75,12 +81,12 @@ public class XmppControllerImpl implements XmppController {
 
     @Override
     public void addXmppDeviceListener(XmppDeviceListener deviceListener) {
-
+        xmppDeviceListeners.add(deviceListener);
     }
 
     @Override
     public void removeXmppDeviceListener(XmppDeviceListener deviceListener) {
-
+        xmppDeviceListeners.remove(deviceListener);
     }
 
     @Override
@@ -109,6 +115,18 @@ public class XmppControllerImpl implements XmppController {
 
         @Override
         public void removeConnectedDevice(XmppDeviceId deviceId) {
+            connectedDevices.remove(deviceId);
+            for(XmppDeviceListener listener : xmppDeviceListeners)
+                listener.deviceDisconnected(deviceId);
+        }
+
+        @Override
+        public XmppDevice getDevice(XmppDeviceId deviceId) {
+            return connectedDevices.get(deviceId);
+        }
+
+        @Override
+        public void processUpstreamEvent(XmppDeviceId deviceId, XmppEvent event) {
 
         }
 

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,11 +33,13 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        logger.info("NEW DEVICE CONNECTED");
+        executorService.execute(new XmppDeviceHandler(ctx, 1));
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) { logger.info("DEVICE DISCONNECTED"); }
+    public void channelInactive(ChannelHandlerContext ctx) {
+        executorService.execute(new XmppDeviceHandler(ctx, 0));
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -66,6 +69,32 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
         //TODO: add error handle mechanisms for each cases
     }
 
+
+    private final class XmppDeviceHandler implements Runnable {
+
+        protected final ChannelHandlerContext ctx;
+        // status of channel to realize if channel was activated/deactivated, 0 = inactive, 1 = active
+        protected final int channelStatus;
+
+        public XmppDeviceHandler(ChannelHandlerContext ctx, int channelStatus) {
+            this.ctx = ctx;
+            this.channelStatus = channelStatus;
+        }
+
+        @Override
+        public void run() {
+            XmppDevice device = factory.getXmppDeviceInstance((InetSocketAddress) ctx.channel().remoteAddress());
+            if(channelStatus==1) {
+                logger.info("NEW DEVICE CONNECTED");
+                device.setChannel(ctx.channel());
+                device.connectDevice();
+            } else if(channelStatus==0) {
+                logger.info("DEVICE DISCONNECTED");
+                device.disconnectDevice();
+            }
+        }
+    }
+
     /**
      * XMPP message handler.
      */
@@ -83,16 +112,14 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
         @Override
         public void run() {
-            // TODO: implement XMPP packet handling
-            logger.info("Executing 2");
             Element root = doc.getRootElement();
             logger.info(root.asXML());
             Packet packet = getXmppPacket(root);
             checkNotNull(packet);
             JID jid = packet.getFrom();
 
-            XmppDevice device = factory.getXmppDeviceInstance(jid);
-            device.setChannel(ctx.channel());
+            XmppDevice device = factory.getXmppDeviceInstance((InetSocketAddress) ctx.channel().remoteAddress());
+            device.setJID(jid);
             device.handlePacket(packet);
 
         }
