@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
+import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.onosproject.net.DeviceId;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
 
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,7 +46,8 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        executorService.execute(new XmppPacketHandler(ctx, (Document) msg));
+        Document doc = (Document) msg;
+        executorService.execute(new XmppPacketHandler(ctx, doc.getRootElement()));
     }
 
     private Packet getXmppPacket(Element root) {
@@ -103,25 +107,54 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
         private final Logger logger = LoggerFactory.getLogger(getClass());
 
         protected final ChannelHandlerContext ctx;
-        protected final Document doc;
+        protected final Element xml;
 
-        public XmppPacketHandler(ChannelHandlerContext ctx, Document doc) {
+        public XmppPacketHandler(ChannelHandlerContext ctx, Element xml) {
             this.ctx = ctx;
-            this.doc = doc;
+            this.xml = xml;
         }
 
         @Override
         public void run() {
-            Element root = doc.getRootElement();
-            logger.info(root.asXML());
-            Packet packet = getXmppPacket(root);
-            checkNotNull(packet);
-            JID jid = packet.getFrom();
 
+            logger.info(xml.asXML());
+            if (xml.getName().equals("stream")){
+                processStream();
+                return;
+            }
+            Packet packet = getXmppPacket(xml);
+            try {
+                checkNotNull(packet);
+            } catch(NullPointerException ex) {
+                return;
+            }
+            JID jid = packet.getFrom();
             XmppDevice device = factory.getXmppDeviceInstance((InetSocketAddress) ctx.channel().remoteAddress());
             device.setJID(jid);
             device.handlePacket(packet);
+        }
 
+        private void processStream() {
+            for( Attribute attr : (List<Attribute>) xml.attributes()) {
+                logger.info("STREAM ATTR: {} {} " , attr.getName(), attr.getValue());
+            }
+            Packet streamResp = new Packet(xml) {
+                @Override
+                public Packet createCopy() {
+                    return null;
+                }
+            };
+            JID from = streamResp.getFrom();
+            JID to = streamResp.getTo();
+            streamResp.setFrom(to);
+            streamResp.setTo(from);
+            streamResp.getElement().addAttribute("id", generateID());
+            logger.info("SENDING /n{}", streamResp.toString());
+            this.ctx.channel().write(streamResp);
+        }
+
+        private String generateID() {
+            return UUID.randomUUID().toString();
         }
     }
 

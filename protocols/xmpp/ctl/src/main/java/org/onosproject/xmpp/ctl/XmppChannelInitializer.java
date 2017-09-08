@@ -33,7 +33,7 @@ public class XmppChannelInitializer extends ChannelInitializer<SocketChannel> {
         XmppChannelHandler handler = new XmppChannelHandler();
         // TODO: try add XmlDecoder to pipeline as it has better performance, uses FasterXML Aalto.
 
-//        pipeline.addLast("xmppencoder",
+        pipeline.addLast("xmppencoder", new XmppEncoder());
         pipeline.addLast("xmppdecoder", new XmppDecoder());
         pipeline.addLast("handler", handler);
 

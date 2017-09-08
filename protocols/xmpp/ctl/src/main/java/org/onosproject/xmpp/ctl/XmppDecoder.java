@@ -34,79 +34,84 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     private static final AsyncXMLInputFactory XML_INPUT_FACTORY = new InputFactoryImpl();
 
+    AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
+    AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
-
-        AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
-        AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
-
-        byte[] buffer = new byte[in.readableBytes()];
-        logger.info("Decoding.. {}", new String(buffer, CharsetUtil.UTF_8));
-
-        in.readBytes(buffer);
         try {
-            streamFeeder.feedInput(buffer, 0, buffer.length);
-        } catch (XMLStreamException exception) {
-            in.skipBytes(in.readableBytes());
-            logger.info("Bytes skipped");
-            throw exception;
-        }
+            byte[] buffer = new byte[in.readableBytes()];
+            logger.info("Decoding.. {}", new String(buffer, CharsetUtil.UTF_8));
 
-        DocumentFactory df = DocumentFactory.getInstance();
-        Document document = df.createDocument();
-        Element parent = null;
-
-        while (!streamFeeder.needMoreInput()) {
-            int type = streamReader.next();
-            switch (type) {
-                case XMLStreamConstants.START_DOCUMENT:
-                    break;
-                case XMLStreamConstants.END_DOCUMENT:
-                    logger.info(document.getRootElement().asXML());
-                    out.add(document);
-                    break;
-                case XMLStreamConstants.START_ELEMENT:
-//                    logger.info("Start element");
-                    QName qname = (streamReader.getPrefix() == null) ?
-                            df.createQName(streamReader.getLocalName(), streamReader.getNamespaceURI()) :
-                            df.createQName(streamReader.getLocalName(), streamReader.getPrefix(), streamReader.getNamespaceURI());
-
-                    // TODO: Check if new element is IQ, Message or Presence. Ignore otherwise.
-                    Element newElement = df.createElement(qname);
-
-                    // add all relevant XML namespaces to Element
-                    for (int x = 0; x < streamReader.getNamespaceCount(); x++) {
-                        newElement.addNamespace(streamReader.getNamespacePrefix(x), streamReader.getNamespaceURI(x));
-                    }
-                    // add all attributes to Element
-                    for (int i = 0; i < streamReader.getAttributeCount(); i++) {
-                        newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
-                    }
-
-
-                    if (parent != null) {
-                        parent.add(newElement);
-                    }
-                    else {
-                        document.add(newElement);
-                    }
-                    parent = newElement;
-
-                    break;
-                case XMLStreamConstants.END_ELEMENT:
-                    if (parent != null) {
-                        parent = parent.getParent();
-                    }
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.CHARACTERS:
-                    if(streamReader.hasText()) {
-                        parent.addText(streamReader.getText());
-                    }
-                    break;
+            in.readBytes(buffer);
+            try {
+                streamFeeder.feedInput(buffer, 0, buffer.length);
+            } catch (XMLStreamException exception) {
+                in.skipBytes(in.readableBytes());
+                logger.info("Bytes skipped");
+                throw exception;
             }
+
+            DocumentFactory df = DocumentFactory.getInstance();
+            Document document = df.createDocument();
+            Element parent = null;
+
+            while (!streamFeeder.needMoreInput()) {
+                int type = streamReader.next();
+                switch (type) {
+                    case XMLStreamConstants.START_DOCUMENT:
+                        break;
+                    case XMLStreamConstants.END_DOCUMENT:
+                        logger.info(document.getRootElement().asXML());
+                        out.add(document);
+                        break;
+                    case XMLStreamConstants.START_ELEMENT:
+//                    logger.info("Start element");
+                        QName qname = (streamReader.getPrefix() == null) ?
+                                df.createQName(streamReader.getLocalName(), streamReader.getNamespaceURI()) :
+                                df.createQName(streamReader.getLocalName(), streamReader.getPrefix(), streamReader.getNamespaceURI());
+
+                        // TODO: Check if new element is IQ, Message or Presence. Ignore otherwise.
+                        Element newElement = df.createElement(qname);
+
+                        // add all relevant XML namespaces to Element
+                        for (int x = 0; x < streamReader.getNamespaceCount(); x++) {
+                            newElement.addNamespace(streamReader.getNamespacePrefix(x), streamReader.getNamespaceURI(x));
+                        }
+                        // add all attributes to Element
+                        for (int i = 0; i < streamReader.getAttributeCount(); i++) {
+                            newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
+                        }
+
+
+                        if (parent != null) {
+                            parent.add(newElement);
+                        }
+                        else {
+                            document.add(newElement);
+                        }
+                        parent = newElement;
+
+                        break;
+                    case XMLStreamConstants.END_ELEMENT:
+                        if (parent != null) {
+                            parent = parent.getParent();
+                        }
+                        // TODO: Implement if needed.
+                        break;
+                    case XMLStreamConstants.CHARACTERS:
+//                    if(streamReader.hasText()) {
+//                        parent.addText(streamReader.getText());
+//                    }
+                        break;
+                }
+            }
+            out.add(document);
+            streamReader.close();
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+            throw e;
         }
-        out.add(document);
-        streamReader.close();
+
     }
 }
