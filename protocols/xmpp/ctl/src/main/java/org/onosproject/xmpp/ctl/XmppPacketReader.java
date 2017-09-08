@@ -7,7 +7,18 @@ import org.xmpp.packet.Packet;
  */
 public class XmppPacketReader  {
 
+    private static XmppPacketReader INSTANCE;
+
+    public static XmppPacketReader getInstance() {
+        if(INSTANCE==null)
+            INSTANCE = new XmppPacketReader();
+        return INSTANCE;
+    }
+
     public Packet readPacket() {
+
+
+
         return null;
     }
 

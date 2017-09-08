@@ -11,6 +11,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+import io.netty.util.CharsetUtil;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
@@ -33,13 +34,15 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     private static final AsyncXMLInputFactory XML_INPUT_FACTORY = new InputFactoryImpl();
 
-    private final AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
-    private final AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
-
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
-        logger.info("Decoding..");
+
+        AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
+        AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+
         byte[] buffer = new byte[in.readableBytes()];
+        logger.info("Decoding.. {}", new String(buffer, CharsetUtil.UTF_8));
+
         in.readBytes(buffer);
         try {
             streamFeeder.feedInput(buffer, 0, buffer.length);
@@ -57,10 +60,8 @@ public class XmppDecoder extends ByteToMessageDecoder {
             int type = streamReader.next();
             switch (type) {
                 case XMLStreamConstants.START_DOCUMENT:
-//                    logger.info("START DOCUMENT");
                     break;
                 case XMLStreamConstants.END_DOCUMENT:
-//                    logger.info("End of XML document");
                     logger.info(document.getRootElement().asXML());
                     out.add(document);
                     break;
@@ -81,6 +82,8 @@ public class XmppDecoder extends ByteToMessageDecoder {
                     for (int i = 0; i < streamReader.getAttributeCount(); i++) {
                         newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
                     }
+
+
                     if (parent != null) {
                         parent.add(newElement);
                     }
@@ -91,32 +94,19 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
                     break;
                 case XMLStreamConstants.END_ELEMENT:
-//                    logger.info("END ELEMENT");
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.PROCESSING_INSTRUCTION:
+                    if (parent != null) {
+                        parent = parent.getParent();
+                    }
                     // TODO: Implement if needed.
                     break;
                 case XMLStreamConstants.CHARACTERS:
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.COMMENT:
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.SPACE:
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.ENTITY_REFERENCE:
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.DTD:
-                    // TODO: Implement if needed.
-                    break;
-                case XMLStreamConstants.CDATA:
-                    // TODO: Implement if needed.
+                    if(streamReader.hasText()) {
+                        parent.addText(streamReader.getText());
+                    }
                     break;
             }
         }
         out.add(document);
+        streamReader.close();
     }
 }
