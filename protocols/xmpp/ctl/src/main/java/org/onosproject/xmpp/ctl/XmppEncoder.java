@@ -19,9 +19,29 @@ public class XmppEncoder extends MessageToByteEncoder {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
-        Packet pkt = (Packet) msg;
-        logger.info("SENDING /n, {}", pkt.toString());
-        byte[] bytes = pkt.toXML().getBytes(CharsetUtil.UTF_8);
-        out.writeBytes(bytes);
+        byte[] bytes = null;
+
+        if(msg instanceof StreamOpen) {
+            StreamOpen streamOpen = (StreamOpen) msg;
+            logger.info("SENDING: {}", streamOpen.asXML());
+            bytes = streamOpen.asXML().getBytes(CharsetUtil.UTF_8);
+        }
+
+        if(msg instanceof StreamClose) {
+            StreamClose streamClose = (StreamClose) msg;
+            bytes = streamClose.asXML().getBytes(CharsetUtil.UTF_8);
+        }
+
+        if(msg instanceof Packet) {
+            Packet pkt = (Packet) msg;
+            logger.info("SENDING /n, {}", pkt.toString());
+            bytes = pkt.toXML().getBytes(CharsetUtil.UTF_8);
+        }
+
+        if(bytes!=null) {
+            out.writeBytes(bytes);
+        }
+
+
     }
 }

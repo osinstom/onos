@@ -18,7 +18,6 @@ public final class XmppDeviceId extends Identifier<String> {
 
     private static final String SCHEME = "xmpp";
 
-    private InetSocketAddress address;
     private JID jid = null;
 
     public XmppDeviceId(InetSocketAddress address) {
@@ -31,8 +30,7 @@ public final class XmppDeviceId extends Identifier<String> {
 
     @Override
     public String toString() {
-//        return jid == null ? identifier.toString() : identifier.toString() + "/" + jid.toString();
-        return identifier.toString();
+        return jid == null ? identifier.toString() : identifier.toString() + "/" + jid.toString();
     }
 
     public static URI uri(XmppDeviceId xmppDeviceId) {

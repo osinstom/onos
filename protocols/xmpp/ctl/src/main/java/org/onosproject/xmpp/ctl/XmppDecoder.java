@@ -12,18 +12,18 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 import io.netty.util.CharsetUtil;
-import org.dom4j.Document;
-import org.dom4j.DocumentFactory;
-import org.dom4j.Element;
-import org.dom4j.QName;
+import org.dom4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmpp.packet.*;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Decodes an XMPP message for netty pipeline
@@ -58,13 +58,10 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
             while (!streamFeeder.needMoreInput()) {
                 int type = streamReader.next();
+
                 switch (type) {
-                    case XMLStreamConstants.START_DOCUMENT:
-                        break;
-                    case XMLStreamConstants.END_DOCUMENT:
-                        logger.info(document.getRootElement().asXML());
-                        out.add(document);
-                        break;
+                    case AsyncXMLStreamReader.EVENT_INCOMPLETE:
+                        return;
                     case XMLStreamConstants.START_ELEMENT:
 //                    logger.info("Start element");
                         QName qname = (streamReader.getPrefix() == null) ?
@@ -76,6 +73,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
                         // add all relevant XML namespaces to Element
                         for (int x = 0; x < streamReader.getNamespaceCount(); x++) {
+                            logger.info(streamReader.getNamespacePrefix(x) + " " + streamReader.getNamespaceURI(x));
                             newElement.addNamespace(streamReader.getNamespacePrefix(x), streamReader.getNamespaceURI(x));
                         }
                         // add all attributes to Element
@@ -83,6 +81,10 @@ public class XmppDecoder extends ByteToMessageDecoder {
                             newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
                         }
 
+                        if(newElement.getName().equals("stream")) {
+                            out.add(new StreamOpen(newElement));
+                            return;
+                        }
 
                         if (parent != null) {
                             parent.add(newElement);
@@ -94,24 +96,48 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
                         break;
                     case XMLStreamConstants.END_ELEMENT:
+                        logger.info("END ELEMENT: {} {}", streamReader.getPrefix(), streamReader.getLocalName());
+                        if(streamReader.getLocalName().equals("stream")) {
+                            // return Stream Error
+                            out.add(new StreamClose());
+                            return;
+                        }
                         if (parent != null) {
                             parent = parent.getParent();
                         }
                         // TODO: Implement if needed.
                         break;
                     case XMLStreamConstants.CHARACTERS:
-//                    if(streamReader.hasText()) {
-//                        parent.addText(streamReader.getText());
-//                    }
+                        if(streamReader.hasText()) {
+                            parent.addText(streamReader.getText());
+                        }
                         break;
                 }
             }
-            out.add(document);
-            streamReader.close();
+            out.add(getXmppPacket(parent));
         } catch (Exception e) {
             logger.info(e.getMessage());
+            e.printStackTrace();
             throw e;
         }
 
     }
+
+    private Packet getXmppPacket(Element root) {
+        checkNotNull(root);
+        Packet packet = null;
+        if(root.getName().equals("iq")) {
+            logger.info("IQ XMPP Packet");
+            packet = new IQ(root);
+        } else if (root.getName().equals("message")) {
+            packet = new Message(root);
+        } else if (root.getName().equals("presence")) {
+            packet = new Presence(root);
+        } else {
+            logger.info("ELSE");
+            throw new RuntimeException("Unrecognized XMPP Packet");
+        }
+        return packet;
+    }
+
 }
