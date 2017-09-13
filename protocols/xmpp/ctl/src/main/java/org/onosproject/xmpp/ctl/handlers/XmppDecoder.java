@@ -1,10 +1,9 @@
-package org.onosproject.xmpp.ctl;
+package org.onosproject.xmpp.ctl.handlers;
 
 
 import com.fasterxml.aalto.AsyncByteArrayFeeder;
 import com.fasterxml.aalto.AsyncXMLInputFactory;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
-import com.fasterxml.aalto.evt.EventAllocatorImpl;
 import com.fasterxml.aalto.stax.InputFactoryImpl;
 
 import io.netty.buffer.ByteBuf;
@@ -13,14 +12,15 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import io.netty.util.CharsetUtil;
 import org.dom4j.*;
+import org.onosproject.xmpp.ctl.stream.StreamClose;
+import org.onosproject.xmpp.ctl.XmppConstants;
+import org.onosproject.xmpp.ctl.stream.StreamOpen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,6 +36,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
     AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
@@ -81,7 +82,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                             newElement.addAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i));
                         }
 
-                        if(newElement.getName().equals("stream")) {
+                        if(newElement.getName().equals(XmppConstants.STREAM_QNAME)) {
                             out.add(new StreamOpen(newElement));
                             return;
                         }
@@ -96,8 +97,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
                         break;
                     case XMLStreamConstants.END_ELEMENT:
-                        logger.info("END ELEMENT: {} {}", streamReader.getPrefix(), streamReader.getLocalName());
-                        if(streamReader.getLocalName().equals("stream")) {
+                        if(streamReader.getLocalName().equals(XmppConstants.STREAM_QNAME)) {
                             // return Stream Error
                             out.add(new StreamClose());
                             return;
@@ -105,7 +105,6 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         if (parent != null) {
                             parent = parent.getParent();
                         }
-                        // TODO: Implement if needed.
                         break;
                     case XMLStreamConstants.CHARACTERS:
                         if(streamReader.hasText()) {
@@ -126,12 +125,12 @@ public class XmppDecoder extends ByteToMessageDecoder {
     private Packet getXmppPacket(Element root) {
         checkNotNull(root);
         Packet packet = null;
-        if(root.getName().equals("iq")) {
+        if(root.getName().equals(XmppConstants.IQ_QNAME)) {
             logger.info("IQ XMPP Packet");
             packet = new IQ(root);
-        } else if (root.getName().equals("message")) {
+        } else if (root.getName().equals(XmppConstants.MESSAGE_QNAME)) {
             packet = new Message(root);
-        } else if (root.getName().equals("presence")) {
+        } else if (root.getName().equals(XmppConstants.PRESENCE_QNAME)) {
             packet = new Presence(root);
         } else {
             logger.info("ELSE");

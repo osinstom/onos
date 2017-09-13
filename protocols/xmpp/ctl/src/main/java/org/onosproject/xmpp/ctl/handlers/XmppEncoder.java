@@ -1,4 +1,4 @@
-package org.onosproject.xmpp.ctl;
+package org.onosproject.xmpp.ctl.handlers;
 
 
 import io.netty.buffer.ByteBuf;
@@ -6,9 +6,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 import io.netty.util.CharsetUtil;
+import org.onosproject.xmpp.ctl.stream.StreamClose;
+import org.onosproject.xmpp.ctl.stream.StreamEvent;
+import org.onosproject.xmpp.ctl.stream.StreamOpen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.Packet;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Encodes XMPP message into a ChannelBuffer for netty pipeline
@@ -21,15 +26,10 @@ public class XmppEncoder extends MessageToByteEncoder {
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         byte[] bytes = null;
 
-        if(msg instanceof StreamOpen) {
-            StreamOpen streamOpen = (StreamOpen) msg;
-            logger.info("SENDING: {}", streamOpen.asXML());
-            bytes = streamOpen.asXML().getBytes(CharsetUtil.UTF_8);
-        }
-
-        if(msg instanceof StreamClose) {
-            StreamClose streamClose = (StreamClose) msg;
-            bytes = streamClose.asXML().getBytes(CharsetUtil.UTF_8);
+        if(msg instanceof StreamEvent) {
+            StreamEvent streamEvent = (StreamEvent) msg;
+            logger.info("SENDING: {}", streamEvent.toXML());
+            bytes = streamEvent.toXML().getBytes(CharsetUtil.UTF_8);
         }
 
         if(msg instanceof Packet) {
@@ -38,10 +38,6 @@ public class XmppEncoder extends MessageToByteEncoder {
             bytes = pkt.toXML().getBytes(CharsetUtil.UTF_8);
         }
 
-        if(bytes!=null) {
-            out.writeBytes(bytes);
-        }
-
-
+        out.writeBytes(checkNotNull(bytes));
     }
 }

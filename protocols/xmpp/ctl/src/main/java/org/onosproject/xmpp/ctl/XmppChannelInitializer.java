@@ -4,6 +4,9 @@ package org.onosproject.xmpp.ctl;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import org.onosproject.xmpp.ctl.handlers.XmppChannelHandler;
+import org.onosproject.xmpp.ctl.handlers.XmppDecoder;
+import org.onosproject.xmpp.ctl.handlers.XmppEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

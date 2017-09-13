@@ -1,4 +1,4 @@
-package org.onosproject.xmpp.ctl;
+package org.onosproject.xmpp.ctl.stream;
 
 import org.dom4j.Attribute;
 import org.dom4j.DocumentFactory;
@@ -7,6 +7,7 @@ import org.dom4j.Namespace;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.xmpp.packet.JID;
+import org.xmpp.packet.Packet;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -16,20 +17,19 @@ import java.util.List;
 /**
  * Created by autonet on 12.09.17.
  */
-public class StreamOpen {
+public class StreamOpen implements StreamEvent {
 
     public static final String QNAME = "stream";
 
     private static DocumentFactory docFactory = DocumentFactory.getInstance();
-
     private Element element;
 
     public StreamOpen(Element element) {
         this.element = element;
-
     }
 
-    public String asXML() {
+    @Override
+    public String toXML() {
         StringWriter out = new StringWriter();
         XMLWriter writer = new XMLWriter(out, OutputFormat.createCompactFormat());
         try {
