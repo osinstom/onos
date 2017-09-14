@@ -1,4 +1,4 @@
-package org.onosproject.xmpp.ctl.stream;
+package org.onosproject.xmpp.stream;
 
 import org.dom4j.Attribute;
 import org.dom4j.DocumentFactory;
@@ -7,11 +7,9 @@ import org.dom4j.Namespace;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.xmpp.packet.JID;
-import org.xmpp.packet.Packet;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.List;
 
 /**

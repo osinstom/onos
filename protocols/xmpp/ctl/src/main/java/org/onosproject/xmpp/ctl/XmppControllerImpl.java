@@ -74,6 +74,9 @@ public class XmppControllerImpl implements XmppController {
     @Deactivate
     public void deactivate() {
         xmppServer.stop();
+        deviceFactory.cleanManager();
+        connectedDevices.values().forEach(XmppDevice::disconnectDevice);
+        connectedDevices.clear();
         cfgService.unregisterProperties(getClass(), false);
         logger.info("Stopped");
     }

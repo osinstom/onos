@@ -7,6 +7,8 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.xmpp.stream.*;
+import org.onosproject.xmpp.stream.StreamError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
@@ -52,6 +54,7 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
 
     @Override
     public void disconnectDevice() {
+        this.closeStream();
         this.channel.close();
         this.manager.removeConnectedDevice(deviceId);
     }
@@ -87,4 +90,36 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
         logger.info("HANDLING PACKET from " + deviceId);
         packet.toString();
     }
+
+    @Override
+    public void closeStream() {
+        this.channel.writeAndFlush(new StreamClose());
+    }
+
+    @Override
+    public void openStream(StreamOpen streamOpen) {
+        logger.info(streamOpen.toXML());
+
+        // 1. respond with StreamOpen
+        writeStreamOpen(streamOpen);
+    }
+
+    @Override
+    public void handleStreamError(StreamError streamError) {
+        // TODO: Implement error handling
+    }
+
+    private void writeStreamOpen(StreamOpen streamOpenFromDevice) {
+        Element element = streamOpenFromDevice.getElement().createCopy();
+        JID from = streamOpenFromDevice.getFromJID();
+        JID to = streamOpenFromDevice.getToJID();
+        element.addAttribute("from", to.toString());
+        element.addAttribute("to", from.toString());
+        element.addAttribute("id", this.channel.id().asShortText()); // use Netty Channel ID as XMPP stream ID
+
+        StreamOpen streamOpenToDevice = new StreamOpen(element);
+        this.channel.writeAndFlush(streamOpenToDevice);
+    }
+
+
 }

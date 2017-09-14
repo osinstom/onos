@@ -1,4 +1,4 @@
-package org.onosproject.xmpp.ctl.stream;
+package org.onosproject.xmpp.stream;
 
 /**
  * Created by autonet on 13.09.17.

@@ -54,6 +54,15 @@ public class XmppDeviceFactory {
         }
     }
 
+    public void cleanManager() {
+        synchronized (manager) {
+            if(this.manager!=null)
+                this.manager = null;
+            else
+                logger.warn("Manager for XMPP device is not configured");
+        }
+    }
+
     private void setDriverService(DriverService driverService) {
         synchronized (driverService) {
             if (this.driverService == null) {

@@ -2,7 +2,10 @@ package org.onosproject.xmpp;
 
 import io.netty.channel.Channel;
 import org.dom4j.Document;
+import org.onosproject.xmpp.stream.StreamError;
+import org.onosproject.xmpp.stream.StreamEvent;
 import org.onosproject.xmpp.driver.XmppDeviceManager;
+import org.onosproject.xmpp.stream.StreamOpen;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 
@@ -40,4 +43,10 @@ public interface XmppDevice {
     void handlePacket(Packet packet);
 
     void init(XmppDeviceId xmppDeviceId);
+
+    void closeStream();
+
+    void openStream(StreamOpen streamOpen);
+
+    void handleStreamError(StreamError streamError);
 }

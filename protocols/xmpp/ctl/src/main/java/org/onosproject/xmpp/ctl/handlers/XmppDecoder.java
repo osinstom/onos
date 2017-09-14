@@ -12,9 +12,9 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import io.netty.util.CharsetUtil;
 import org.dom4j.*;
-import org.onosproject.xmpp.ctl.stream.StreamClose;
+import org.onosproject.xmpp.stream.StreamClose;
 import org.onosproject.xmpp.ctl.XmppConstants;
-import org.onosproject.xmpp.ctl.stream.StreamOpen;
+import org.onosproject.xmpp.stream.StreamOpen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
@@ -123,6 +123,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
     }
 
     private Packet getXmppPacket(Element root) {
+        logger.info("BEFORE CHECK NOT NULL" + root);
         checkNotNull(root);
         Packet packet = null;
         if(root.getName().equals(XmppConstants.IQ_QNAME)) {

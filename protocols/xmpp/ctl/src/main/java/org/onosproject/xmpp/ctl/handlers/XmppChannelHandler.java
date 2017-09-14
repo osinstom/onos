@@ -3,9 +3,7 @@ package org.onosproject.xmpp.ctl.handlers;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.onosproject.xmpp.XmppDevice;
-import org.onosproject.xmpp.ctl.stream.StreamClose;
-import org.onosproject.xmpp.ctl.stream.StreamEvent;
-import org.onosproject.xmpp.ctl.stream.StreamOpen;
+import org.onosproject.xmpp.stream.StreamEvent;
 import org.onosproject.xmpp.ctl.XmppDeviceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +45,7 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         cause.printStackTrace();
-        logger.warn(cause.getMessage());
+        logger.info(cause.getMessage());
         //TODO: add error handle mechanisms for each cases
     }
 
