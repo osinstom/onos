@@ -202,6 +202,7 @@ ONOS_APPS = [
     '//apps/cord-support:onos-apps-cord-support-oar',
     '//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar',
     '//apps/l3vpn:onos-apps-l3vpn-oar',
+    '//apps/contrail-poc:onos-apps-contrail-poc-oar',
 ]
 
 MODELS = [
@@ -222,6 +223,7 @@ APP_JARS = [
     '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
     '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
+    '//apps/pubsub-api:onos-apps-pubsub-api'
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS

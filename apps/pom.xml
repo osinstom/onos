@@ -89,6 +89,8 @@
         <module>network-troubleshoot</module>
         <module>l3vpn</module>
         <module>restconf</module>
+        <module>pubsub-api</module>
+        <module>contrail-poc</module>
     </modules>
 
     <properties>
