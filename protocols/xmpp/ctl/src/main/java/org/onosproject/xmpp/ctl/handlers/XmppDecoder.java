@@ -59,7 +59,9 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
             while (!streamFeeder.needMoreInput()) {
                 int type = streamReader.next();
-
+                logger.info("Handling TYPE {}", type);
+                if(parent!=null)
+                    logger.info("Actual parent {}", parent.asXML());
                 switch (type) {
                     case AsyncXMLStreamReader.EVENT_INCOMPLETE:
                         return;
@@ -103,12 +105,14 @@ public class XmppDecoder extends ByteToMessageDecoder {
                             return;
                         }
                         if (parent != null) {
-                            parent = parent.getParent();
+                            if(parent.getParent()!=null)
+                                parent = parent.getParent();
                         }
                         break;
                     case XMLStreamConstants.CHARACTERS:
                         if(streamReader.hasText()) {
-                            parent.addText(streamReader.getText());
+                            if(parent!=null)
+                                parent.addText(streamReader.getText());
                         }
                         break;
                 }
@@ -123,18 +127,15 @@ public class XmppDecoder extends ByteToMessageDecoder {
     }
 
     private Packet getXmppPacket(Element root) {
-        logger.info("BEFORE CHECK NOT NULL" + root);
         checkNotNull(root);
         Packet packet = null;
         if(root.getName().equals(XmppConstants.IQ_QNAME)) {
-            logger.info("IQ XMPP Packet");
             packet = new IQ(root);
         } else if (root.getName().equals(XmppConstants.MESSAGE_QNAME)) {
             packet = new Message(root);
         } else if (root.getName().equals(XmppConstants.PRESENCE_QNAME)) {
             packet = new Presence(root);
         } else {
-            logger.info("ELSE");
             throw new RuntimeException("Unrecognized XMPP Packet");
         }
         return packet;

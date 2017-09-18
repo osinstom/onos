@@ -53,6 +53,7 @@ public class XmppControllerImpl implements XmppController {
 
     // listener declaration
     protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();
+    protected Set<XmppEventListener> xmppEventListeners = new CopyOnWriteArraySet<XmppEventListener>();
 
     protected XmppDeviceManager manager = new DefaultXmppDeviceManager();
 
@@ -93,6 +94,15 @@ public class XmppControllerImpl implements XmppController {
     }
 
     @Override
+    public void addXmppEventListener(XmppEventListener eventListener) { xmppEventListeners.add(eventListener); }
+
+    @Override
+    public void removeXmppEventListener(XmppEventListener eventListener) {
+        xmppEventListeners.remove(eventListener);
+    }
+
+
+    @Override
     public void processXmppPacket() {
 
     }
@@ -130,7 +140,8 @@ public class XmppControllerImpl implements XmppController {
 
         @Override
         public void processUpstreamEvent(XmppDeviceId deviceId, XmppEvent event) {
-
+            for(XmppEventListener listener : xmppEventListeners)
+                listener.event(event);
         }
 
     }

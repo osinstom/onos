@@ -16,7 +16,7 @@ public class PubSubXmppDriver extends AbstractXmppDevice {
     @Override
     public void handlePacket(Packet packet) {
         logger.info("HANDLING PACKET from " + packet.getFrom());
-        Publish publish = new Publish();
+        Publish publish = new Publish(packet);
         this.manager.processUpstreamEvent(this.deviceId, publish);
     }
 
