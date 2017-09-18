@@ -77,6 +77,7 @@ CORE = UTILS + API + [
     '//providers/lisp/device:onos-providers-lisp-device',
     '//providers/tl1/device:onos-providers-tl1-device',
     '//providers/xmpp/device:onos-providers-xmpp-device',
+    '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
@@ -223,8 +224,8 @@ APP_JARS = [
     '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
     '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
-    '//apps/pubsub-api:onos-apps-pubsub-api'
+    '//apps/pubsub-api:onos-apps-pubsub-api',
 ]
 
-APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS
+APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + APP_JARS
 

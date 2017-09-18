@@ -33,7 +33,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
     private final Logger logger = getLogger(getClass());
 
 
-    private static final String PROVIDER = "org.onosproject.provider.xmpp";
+    private static final String PROVIDER = "org.onosproject.provider.xmpp.device";
     private static final String APP_NAME = "org.onosproject.xmpp";
     private static final String XMPP = "xmpp";
     private static final String ADDRESS = "address";
