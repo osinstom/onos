@@ -1,6 +1,7 @@
 package org.onosproject.drivers.xmpp.xep0060;
 
 import org.dom4j.Element;
+import org.onosproject.net.DeviceId;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.XmppEvent;
 import org.onosproject.xmpp.driver.AbstractXmppDevice;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.xmpp.packet.Packet;
 
 import java.util.List;
+
+import static org.onosproject.xmpp.XmppDeviceId.uri;
 
 /**
  * Created by autonet on 05.09.17.
@@ -46,7 +49,7 @@ public class PubSubXmppDriver extends AbstractXmppDevice {
         Method method = getMethod(element);
         switch(method) {
             case SUBSCRIBE:
-                SubscribeEvent event = new SubscribeEvent(element);
+                SubscribeEvent event = new SubscribeEvent(DeviceId.deviceId(uri(this.deviceId)), element);
                 notifyEvent(event);
         }
     }

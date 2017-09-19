@@ -20,4 +20,5 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'OpenContrail Networking Proof of Concept application.',
+    required_apps = [ 'org.onosproject.l3vpn' ]
 )

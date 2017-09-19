@@ -4,6 +4,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.pubsub.api.*;
@@ -42,7 +43,7 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
         }
 
         @Override
-        public void subscribe(SubscriptionInfo subscriptionInfo) {
+        public void subscribe(DeviceId deviceId, SubscriptionInfo subscriptionInfo) {
             logger.info("SUBSCRIBE received");
             PubSubEvent event = new PubSubEvent(PubSubEvent.Type.NEW_SUBSCRIPTION, subscriptionInfo);
             post(event);

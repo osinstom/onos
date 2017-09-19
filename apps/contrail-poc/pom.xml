@@ -26,6 +26,15 @@
             <artifactId>org.osgi.compendium</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-l3vpn-netl3vpn</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-l3vpn-netl3vpn</artifactId>
+            <version>1.10.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 

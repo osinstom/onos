@@ -6,7 +6,7 @@ import org.xmpp.packet.Packet;
 /**
  * Created by autonet on 05.09.17.
  */
-public class Publish extends XmppEvent {
+public class Publish {
 
     private Packet packet;
 
@@ -16,7 +16,7 @@ public class Publish extends XmppEvent {
         this.packet = packet;
     }
 
-    @Override
+
     public String toXML() {
         return packet.toXML();
     }
