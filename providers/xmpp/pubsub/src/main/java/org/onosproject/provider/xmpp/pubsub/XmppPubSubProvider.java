@@ -67,11 +67,9 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
         @Override
         public void event(XmppEvent event) {
-            SubscriptionInfo subscriptionInfo = new SubscriptionInfo();
+            SubscriptionInfo subscriptionInfo = new SubscriptionInfo("none");
             notifyNewSubscriptionToCore(subscriptionInfo);
         }
-
-
 
         private void notifyNewSubscriptionToCore(SubscriptionInfo subscriptionInfo) {
             providerService.subscribe(subscriptionInfo);

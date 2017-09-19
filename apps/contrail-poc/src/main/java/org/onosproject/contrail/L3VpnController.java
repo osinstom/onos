@@ -22,6 +22,8 @@ public class L3VpnController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PubSubService pubSubService;
 
+    
+
     private PubSubListener listener = new InternalPubSubListener();
 
     @Activate
