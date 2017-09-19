@@ -1,6 +1,6 @@
 package org.onosproject.pubsub.api;
 
-public interface PubSubAdminService {
+public interface PubSubAdminService  {
 
 
 

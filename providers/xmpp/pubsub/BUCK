@@ -1,7 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
-    '//apps/pubsub-api:onos-apps-pubsub-api',
+    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+    '//apps/pubsub:onos-apps-pubsub',
 ]
 
 TEST_DEPS = [
