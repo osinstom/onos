@@ -36,12 +36,14 @@ public class XmppDecoder extends ByteToMessageDecoder {
     private static final AsyncXMLInputFactory XML_INPUT_FACTORY = new InputFactoryImpl();
 
     AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
-    AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+//    AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
 
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
         try {
+            AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+
             byte[] buffer = new byte[in.readableBytes()];
             logger.info("Decoding.. {}", new String(buffer, CharsetUtil.UTF_8));
 
@@ -58,6 +60,8 @@ public class XmppDecoder extends ByteToMessageDecoder {
             Document document = df.createDocument();
             Element parent = null;
 
+            boolean isNotCompleted = false;
+
             while (!streamFeeder.needMoreInput()) {
                 int type = streamReader.next();
                 logger.info("Handling TYPE {}", type);
@@ -65,6 +69,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                     logger.info("Actual parent {}", parent.asXML());
                 switch (type) {
                     case AsyncXMLStreamReader.EVENT_INCOMPLETE:
+                        isNotCompleted = true;
                         return;
                     case XMLStreamConstants.START_ELEMENT:
 //                    logger.info("Start element");
@@ -118,7 +123,8 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         break;
                 }
             }
-            out.add(getXmppPacket(parent));
+            if(isNotCompleted == false)
+                out.add(getXmppPacket(parent));
         } catch (Exception e) {
             logger.info(e.getMessage());
             e.printStackTrace();

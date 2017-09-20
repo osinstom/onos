@@ -1,6 +1,7 @@
 package org.onosproject.contrail;
 
 import org.apache.felix.scr.annotations.*;
+import org.onosproject.l3vpn.netl3vpn.BgpInfo;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
@@ -40,6 +41,10 @@ public class L3VpnController {
         pubSubService.removeListener(listener);
     }
 
+    private void handleNewSubscription(SubscriptionInfo info) {
+//        store.addInterfaceInfo();
+    }
+
 
     private class InternalPubSubListener implements PubSubListener {
 
@@ -48,9 +53,21 @@ public class L3VpnController {
             PubSubEvent.Type type = event.type();
             switch(type) {
                 case NEW_SUBSCRIPTION:
-                    logger.info("NEW_SUBS!!!");
                     SubscriptionInfo info = (SubscriptionInfo) event.subject();
-                    logger.info("From device {}", info.getFromDevice());
+                    logger.info(info.toString());
+                    handleNewSubscription(info);
+                    break;
+                case DELETE_SUBSCRIPTION:
+                    SubscriptionInfo info1 = (SubscriptionInfo) event.subject();
+                    logger.info(info1.toString());
+                    // TODO: Remove subscription
+                    break;
+                case PUBLISH:
+                    PublishInfo publishInfo = (PublishInfo) event.subject();
+                    logger.info(publishInfo.toString());
+                    // TODO: Handle publish
+                    break;
+                case RETRACT:
                     break;
             }
         }

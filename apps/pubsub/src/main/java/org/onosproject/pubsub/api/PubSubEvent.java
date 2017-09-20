@@ -8,7 +8,8 @@ public class PubSubEvent extends AbstractEvent<PubSubEvent.Type, Object> {
         NEW_SUBSCRIPTION,
         UPDATE_SUBSCRIPTION,
         DELETE_SUBSCRIPTION,
-        PUBLISH
+        PUBLISH,
+        RETRACT
     }
 
     public PubSubEvent(Type type, Object object) {

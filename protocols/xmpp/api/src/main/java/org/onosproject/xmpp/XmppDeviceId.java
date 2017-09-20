@@ -24,6 +24,10 @@ public final class XmppDeviceId extends Identifier<String> {
         super("xmpp" + address);
     }
 
+    public XmppDeviceId(JID jid) {
+        super("xmpp" + jid.toString());
+    }
+
     public void setJID(JID jid) {
         this.jid = jid;
     }

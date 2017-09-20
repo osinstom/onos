@@ -54,7 +54,7 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
 
     @Override
     public void disconnectDevice() {
-        this.closeStream();
+        this.writeCloseStream();
         this.channel.close();
         this.manager.removeConnectedDevice(deviceId);
     }
@@ -94,6 +94,10 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
 
     @Override
     public void closeStream() {
+        this.disconnectDevice();
+    }
+
+    private void writeCloseStream() {
         this.channel.writeAndFlush(new StreamClose());
     }
 

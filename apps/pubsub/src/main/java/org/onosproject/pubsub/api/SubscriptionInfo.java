@@ -12,11 +12,24 @@ public class SubscriptionInfo {
         this.nodeId = nodeId;
     }
 
+    public SubscriptionInfo(String device, String nodeId) {
+        this.fromDevice = DeviceId.deviceId(device);
+        this.nodeId = nodeId;
+    }
+
     public String getNodeId() {
         return nodeId;
     }
 
     public DeviceId getFromDevice() {
         return fromDevice;
+    }
+
+    @Override
+    public String toString() {
+        return "SubscriptionInfo{" +
+                "fromDevice=" + fromDevice +
+                ", nodeId='" + nodeId + '\'' +
+                '}';
     }
 }

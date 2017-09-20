@@ -52,6 +52,7 @@
         <module>oplink</module>
         <module>huawei</module>
         <module>xmpp</module>
+        <module>opencontrail</module>
     </modules>
 
     <!--<properties>
