@@ -2,7 +2,6 @@ package org.onosproject.drivers.xmpp.xep0060;
 
 import org.dom4j.Element;
 import org.onosproject.net.DeviceId;
-import org.onosproject.xmpp.XmppEvent;
 
 /**
  * Created by autonet on 05.09.17.

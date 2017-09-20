@@ -43,9 +43,9 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
         }
 
         @Override
-        public void subscribe(DeviceId deviceId, SubscriptionInfo subscriptionInfo) {
+        public void subscribe(SubscriptionInfo subscriptionInfo) {
             logger.info("SUBSCRIBE received");
-            PubSubEvent event = new PubSubEvent(PubSubEvent.Type.NEW_SUBSCRIPTION, subscriptionInfo);
+            final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.NEW_SUBSCRIPTION, subscriptionInfo);
             post(event);
         }
 

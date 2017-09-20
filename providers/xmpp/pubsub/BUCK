@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:tinder-xmpp',
     '//protocols/xmpp/api:onos-protocols-xmpp-api',
     '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
     '//apps/pubsub:onos-apps-pubsub',

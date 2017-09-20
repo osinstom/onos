@@ -9,11 +9,10 @@ import org.onosproject.pubsub.api.PubSubProviderRegistry;
 import org.onosproject.pubsub.api.PubSubProviderService;
 import org.onosproject.pubsub.api.SubscriptionInfo;
 import org.onosproject.xmpp.XmppController;
-import org.onosproject.xmpp.XmppDeviceListener;
-import org.onosproject.xmpp.XmppEvent;
-import org.onosproject.xmpp.XmppEventListener;
+import org.onosproject.xmpp.XmppIqListener;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+import org.xmpp.packet.IQ;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -39,7 +38,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
     protected PubSubProviderService providerService;
 
-    private XmppEventListener eventListener = new InternalXmppEventListener();
+    private XmppIqListener eventListener = new InternalXmppIqListener();
 
     /**
      * Creates a provider with the supplied identifier.
@@ -54,7 +53,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     public void activate(ComponentContext context) {
         logger.info("Started");
         providerService = providerRegistry.register(this);
-        controller.addXmppEventListener(eventListener);
+        controller.addXmppIqListener(eventListener);
         logger.info("Started");
     }
 
@@ -63,18 +62,22 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
         logger.info("Stopped");
     }
 
-    private class InternalXmppEventListener implements XmppEventListener {
+    private void notifyNewSubscriptionToCore(SubscriptionInfo subscriptionInfo) {
+        providerService.subscribe(subscriptionInfo);
+    }
+
+    private class InternalXmppIqListener implements XmppIqListener {
+
 
         @Override
-        public void event(XmppEvent event) {
-            SubscriptionInfo subscriptionInfo = new SubscriptionInfo(event.getDeviceId(), "none");
-            notifyNewSubscriptionToCore(subscriptionInfo);
+        public void handleEvent(IQ iqEvent) {
+            if(XmppPubSubUtils.isPubSub(iqEvent)) {
+                logger.info("IS PUBSUB!!!");
+            }
         }
-
-        private void notifyNewSubscriptionToCore(SubscriptionInfo subscriptionInfo) {
-            providerService.subscribe(subscriptionInfo);
-        }
-
 
     }
+
+
+
 }

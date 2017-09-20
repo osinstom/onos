@@ -3,6 +3,7 @@ package org.onosproject.xmpp.ctl.handlers;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.onosproject.xmpp.XmppDevice;
+import org.onosproject.xmpp.ctl.exception.UnsupportedStanzaTypeException;
 import org.onosproject.xmpp.stream.StreamEvent;
 import org.onosproject.xmpp.ctl.XmppDeviceFactory;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
 
     private final XmppDeviceFactory factory = XmppDeviceFactory.getInstance();
 
+    private XmppStreamHelper streamHelper = new XmppStreamHelper();
+
     protected ExecutorService executorService =
             Executors.newFixedThreadPool(32, groupedThreads("onos/xmpp", "message-stats-%d", logger));
 
@@ -44,9 +47,11 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
-        cause.printStackTrace();
-        logger.info(cause.getMessage());
+        logger.info("Exception caught: {}", cause.getMessage());
+
         //TODO: add error handle mechanisms for each cases
+        if(cause.getCause() instanceof UnsupportedStanzaTypeException)
+            streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.unsupported_stanza_type);
     }
 
     /**

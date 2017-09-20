@@ -5,7 +5,7 @@ import org.onosproject.net.provider.ProviderService;
 
 public interface PubSubProviderService extends ProviderService<PubSubProvider> {
 
-    void subscribe(DeviceId deviceId, SubscriptionInfo subscriptionInfo);
+    void subscribe(SubscriptionInfo subscriptionInfo);
 
     void unsubscribe(SubscriptionInfo subscriptionInfo);
 

@@ -10,6 +10,10 @@ import org.onosproject.xmpp.driver.XmppDeviceManager;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmpp.packet.IQ;
+import org.xmpp.packet.Message;
+import org.xmpp.packet.Packet;
+import org.xmpp.packet.Presence;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -53,7 +57,10 @@ public class XmppControllerImpl implements XmppController {
 
     // listener declaration
     protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();
-    protected Set<XmppEventListener> xmppEventListeners = new CopyOnWriteArraySet<XmppEventListener>();
+
+    protected Set<XmppIqListener> xmppIqListeners = new CopyOnWriteArraySet<XmppIqListener>();
+    protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
+    protected Set<XmppPresenceListener> xmppPresenceListeners = new CopyOnWriteArraySet<XmppPresenceListener>();
 
     protected XmppDeviceManager manager = new DefaultXmppDeviceManager();
 
@@ -94,18 +101,35 @@ public class XmppControllerImpl implements XmppController {
     }
 
     @Override
-    public void addXmppEventListener(XmppEventListener eventListener) { xmppEventListeners.add(eventListener); }
-
-    @Override
-    public void removeXmppEventListener(XmppEventListener eventListener) {
-        xmppEventListeners.remove(eventListener);
+    public void addXmppIqListener(XmppIqListener iqListener) {
+        xmppIqListeners.add(iqListener);
     }
 
+    @Override
+    public void removeXmppIqListener(XmppIqListener iqListener) {
+        xmppIqListeners.remove(iqListener);
+    }
 
     @Override
-    public void processXmppPacket() {
-
+    public void addXmppMessageListener(XmppMessageListener messageListener) {
+        xmppMessageListeners.add(messageListener);
     }
+
+    @Override
+    public void removeXmppMessageListener(XmppMessageListener messageListener) {
+        xmppMessageListeners.remove(messageListener);
+    }
+
+    @Override
+    public void addXmppPresenceListener(XmppPresenceListener presenceListener) {
+        xmppPresenceListeners.add(presenceListener);
+    }
+
+    @Override
+    public void removeXmppPresenceListener(XmppPresenceListener presenceListener) {
+        xmppPresenceListeners.remove(presenceListener);
+    }
+
 
     private class DefaultXmppDeviceManager implements XmppDeviceManager {
 
@@ -139,9 +163,16 @@ public class XmppControllerImpl implements XmppController {
         }
 
         @Override
-        public void processUpstreamEvent(XmppDeviceId deviceId, XmppEvent event) {
-            for(XmppEventListener listener : xmppEventListeners)
-                listener.event(event);
+        public void processUpstreamEvent(XmppDeviceId deviceId, Packet packet) {
+            if(packet instanceof IQ)
+                for(XmppIqListener iqListener: xmppIqListeners)
+                    iqListener.handleEvent((IQ)packet);
+            if(packet instanceof Message)
+                for(XmppMessageListener messageListener : xmppMessageListeners)
+                    messageListener.handleEvent((Message) packet);
+            if(packet instanceof Presence)
+                for(XmppPresenceListener presenceListener : xmppPresenceListeners)
+                    presenceListener.handleEvent((Presence) packet);
         }
 
     }

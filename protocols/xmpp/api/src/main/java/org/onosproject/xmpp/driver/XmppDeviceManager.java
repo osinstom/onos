@@ -2,7 +2,7 @@ package org.onosproject.xmpp.driver;
 
 import org.onosproject.xmpp.XmppDevice;
 import org.onosproject.xmpp.XmppDeviceId;
-import org.onosproject.xmpp.XmppEvent;
+import org.xmpp.packet.Packet;
 
 /**
  * Created by autonet on 01.09.17.
@@ -15,7 +15,8 @@ public interface XmppDeviceManager {
 
     XmppDevice getDevice(XmppDeviceId deviceId);
 
-    void processUpstreamEvent(XmppDeviceId deviceId, XmppEvent event);
+    void processUpstreamEvent(XmppDeviceId deviceId, Packet packet);
+
 
 
 

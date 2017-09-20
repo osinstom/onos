@@ -9,6 +9,7 @@ import org.onosproject.net.driver.DriverService;
 import org.onosproject.xmpp.XmppDevice;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.driver.AbstractXmppDevice;
+import org.onosproject.xmpp.driver.DefaultXmppDevice;
 import org.onosproject.xmpp.driver.XmppDeviceDriver;
 import org.onosproject.xmpp.driver.XmppDeviceManager;
 import org.slf4j.Logger;
@@ -87,13 +88,24 @@ public class XmppDeviceFactory {
     }
 
     private XmppDevice createXmppDriverInstance(XmppDeviceId xmppDeviceId) {
+        XmppDeviceDriver xmppDriver = null;
+        try {
+            xmppDriver = getXmppDeviceDriverInstance(xmppDeviceId);
+        } catch(ItemNotFoundException ex) {
+            xmppDriver = new DefaultXmppDevice();
+        }
 
+        xmppDriver.init(xmppDeviceId);
+        xmppDriver.setManager(this.manager);
+        return xmppDriver;
+    }
+
+    private XmppDeviceDriver getXmppDeviceDriverInstance(XmppDeviceId xmppDeviceId) throws ItemNotFoundException{
         Driver driver;
         try {
             // TODO: temp solution, need to provide universal solution
             driver = driverService.getDriver("XEP0060");
         } catch (ItemNotFoundException e) {
-            // TODO: implement better exception handling
             throw e;
         }
 
@@ -112,8 +124,7 @@ public class XmppDeviceFactory {
         DefaultDriverHandler handler =
                 new DefaultDriverHandler(new DefaultDriverData(driver, DeviceId.deviceId(uri(xmppDeviceId))));
         XmppDeviceDriver xmppDriver = driver.createBehaviour(handler, XmppDeviceDriver.class);
-        xmppDriver.init(xmppDeviceId);
-        xmppDriver.setManager(this.manager);
+
         return xmppDriver;
     }
 

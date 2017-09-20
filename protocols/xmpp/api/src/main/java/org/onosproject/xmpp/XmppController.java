@@ -9,10 +9,16 @@ public interface XmppController {
 
     void removeXmppDeviceListener(XmppDeviceListener deviceListener);
 
-    void addXmppEventListener(XmppEventListener eventListener);
+    void addXmppIqListener(XmppIqListener iqListener);
 
-    void removeXmppEventListener(XmppEventListener eventListener);
+    void removeXmppIqListener(XmppIqListener iqListener);
 
-    void processXmppPacket();
+    void addXmppMessageListener(XmppMessageListener messageListener);
+
+    void removeXmppMessageListener(XmppMessageListener messageListener);
+
+    void addXmppPresenceListener(XmppPresenceListener presenceListener);
+
+    void removeXmppPresenceListener(XmppPresenceListener presenceListener);
 
 }

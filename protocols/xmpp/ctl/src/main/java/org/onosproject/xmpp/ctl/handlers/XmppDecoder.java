@@ -12,6 +12,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import io.netty.util.CharsetUtil;
 import org.dom4j.*;
+import org.onosproject.xmpp.ctl.exception.UnsupportedStanzaTypeException;
 import org.onosproject.xmpp.stream.StreamClose;
 import org.onosproject.xmpp.ctl.XmppConstants;
 import org.onosproject.xmpp.stream.StreamOpen;
@@ -126,7 +127,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     }
 
-    private Packet getXmppPacket(Element root) {
+    private Packet getXmppPacket(Element root) throws UnsupportedStanzaTypeException {
         checkNotNull(root);
         Packet packet = null;
         if(root.getName().equals(XmppConstants.IQ_QNAME)) {
@@ -136,7 +137,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
         } else if (root.getName().equals(XmppConstants.PRESENCE_QNAME)) {
             packet = new Presence(root);
         } else {
-            throw new RuntimeException("Unrecognized XMPP Packet");
+            throw new UnsupportedStanzaTypeException("Unrecognized XMPP Packet");
         }
         return packet;
     }

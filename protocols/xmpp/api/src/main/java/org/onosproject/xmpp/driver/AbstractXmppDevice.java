@@ -88,6 +88,7 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     @Override
     public void handlePacket(Packet packet) {
         logger.info("HANDLING PACKET from " + deviceId);
+        this.manager.processUpstreamEvent(deviceId, packet);
         packet.toString();
     }
 
