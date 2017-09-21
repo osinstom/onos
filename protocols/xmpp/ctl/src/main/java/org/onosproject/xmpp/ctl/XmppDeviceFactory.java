@@ -40,6 +40,11 @@ public class XmppDeviceFactory {
         return INSTANCE;
     }
 
+    public void init(XmppDeviceManager manager, DriverService driverService) {
+        setManager(manager);
+        setDriverService(driverService);
+    }
+
     /**
      * Configures XMPP device manager only if it is not initialized.
      *
@@ -74,14 +79,27 @@ public class XmppDeviceFactory {
         }
     }
 
-    public XmppDevice getXmppDeviceInstance(InetSocketAddress address) {
-        XmppDeviceId deviceId = new XmppDeviceId(address);
-        XmppDevice device = manager.getDevice(deviceId);
+    public XmppDevice getXmppDeviceInstanceByJid(JID jid) {
+        XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
+
+        return getXmppDevice(xmppDeviceId);
+    }
+
+
+    public XmppDevice getXmppDeviceInstanceBySocketAddress(InetSocketAddress address) {
+
+        XmppDeviceId xmppDeviceId = this.manager.getXmppDeviceIdBySocketAddress(address);
+
+        return getXmppDevice(xmppDeviceId);
+    }
+
+    private XmppDevice getXmppDevice(XmppDeviceId xmppDeviceId) {
+        XmppDevice device = manager.getDevice(xmppDeviceId);
         if(device!=null) {
             return device;
         } else {
             // temporary solution, TODO: getDriver for device
-            XmppDevice newDevice = createXmppDriverInstance(deviceId);
+            XmppDevice newDevice = createXmppDriverInstance(xmppDeviceId);
             newDevice.setManager(this.manager);
             return newDevice;
         }
@@ -129,8 +147,4 @@ public class XmppDeviceFactory {
     }
 
 
-    public void init(XmppDeviceManager manager, DriverService driverService) {
-        setManager(manager);
-        setDriverService(driverService);
-    }
 }

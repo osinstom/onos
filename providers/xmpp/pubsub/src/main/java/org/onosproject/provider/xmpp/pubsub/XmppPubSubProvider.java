@@ -17,8 +17,16 @@ import org.onosproject.xmpp.XmppIqListener;
 import org.onosproject.xmpp.driver.XmppDeviceDriver;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
-import org.xmpp.packet.IQ;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import org.xmpp.packet.IQ;
+import org.xmpp.packet.JID;
+
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.xmpp.XmppDeviceId.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -30,6 +38,8 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     private static final String PROVIDER = "org.onosproject.provider.xmpp.pubsub";
     private static final String APP_NAME = "org.onosproject.xmpp";
     private static final String XMPP = "xmpp";
+    private static final String HARDWARE_VERSION = "XMPP Device";
+    private static final String SOFTWARE_VERSION = "1.0";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -68,6 +78,12 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     @Deactivate
     public void deactivate(ComponentContext context) {
         logger.info("Stopped");
+    }
+
+    @Override
+    public void sendNotifications(List<DeviceId> devices, PublishInfo publishInfo) {
+
+        
     }
 
     private void handlePubSubOperation(XmppPubSubUtils.Method method, IQ iq) {
@@ -123,53 +139,59 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private PublishInfo constructPublishInfo(IQ iq) {
-        String jid = iq.getElement().attribute("from").getValue();
-        DeviceId xmppDeviceId = DeviceId.deviceId(jid);
+        JID fromJid = iq.getFrom();
+        PubSubInfoConstructor pubSubInfoConstructor = getPubSubConstructor(fromJid);
 
-        PubSubInfoConstructor pubSubInfoConstructor = getPubSubConstructor(xmppDeviceId);
 
-        PublishInfo publishInfo = pubSubInfoConstructor.parsePublishInfo(iq);
+        Element publish = (Element) iq.getChildElement().elements().get(0);
+        PublishInfo publishInfo = pubSubInfoConstructor.parsePublishInfo(publish);
 
         return publishInfo;
     }
 
-    private PubSubInfoConstructor getPubSubConstructor(DeviceId xmppDeviceId) {
+    private PubSubInfoConstructor getPubSubConstructor(JID jid) {
+
+        String domain = jid.getDomain();
+        Driver driver = getDriverByJidDomain(domain);
+        checkNotNull(driver);
+
+        DeviceId deviceId = DeviceId.deviceId(jid.toString());
+        logger.info("Driver {} assigned to device {}", driver.name(), deviceId);
+
+        DefaultDriverHandler handler =
+                new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+
+        PubSubInfoConstructor pubSubInfoConstructor = driver.createBehaviour(handler, PubSubInfoConstructor.class);
+        return pubSubInfoConstructor;
+    }
+
+    private Driver getDriverByJidDomain(String domain) {
         Driver driver;
         try {
-            // TODO: temp solution, need to provide universal solution
-            driver = driverService.getDriver(xmppDeviceId);
+            driver = driverService.getDriver(domain, HARDWARE_VERSION, SOFTWARE_VERSION);
         } catch (ItemNotFoundException e) {
             throw e;
         }
 
         if (driver == null) {
-            logger.error("No XMPP driver for {} : {}", xmppDeviceId);
+            logger.error("No XMPP driver for domain: {}", domain);
             return null;
         }
-
-        logger.info("Driver {} assigned to device {}", driver.name(), xmppDeviceId);
 
         if (!driver.hasBehaviour(PubSubInfoConstructor.class)) {
             logger.error("Driver {} does not support PubSubInfoConstructor behaviour", driver.name());
             return null;
         }
-
-        DefaultDriverHandler handler =
-                new DefaultDriverHandler(new DefaultDriverData(driver, xmppDeviceId));
-
-        PubSubInfoConstructor pubSubInfoConstructor = driver.createBehaviour(handler, PubSubInfoConstructor.class);
-        return pubSubInfoConstructor;
+        return driver;
     }
+
 
     private class InternalXmppIqListener implements XmppIqListener {
 
         @Override
         public void handleEvent(IQ iqEvent) {
             if(XmppPubSubUtils.isPubSub(iqEvent)) {
-                logger.info("IS PUBSUB!!!");
-                logger.info("MethodIQ: {}", iqEvent.getChildElement().asXML());
                 XmppPubSubUtils.Method method = XmppPubSubUtils.getMethod(iqEvent);
-                logger.info("Method: {}", method);
                 handlePubSubOperation(method, iqEvent);
             }
         }

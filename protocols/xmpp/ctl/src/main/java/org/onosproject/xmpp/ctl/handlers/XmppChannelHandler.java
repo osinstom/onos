@@ -48,10 +48,14 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         logger.info("Exception caught: {}", cause.getMessage());
+        logger.info(cause.getCause().getMessage());
 
         //TODO: add error handle mechanisms for each cases
         if(cause.getCause() instanceof UnsupportedStanzaTypeException)
             streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.unsupported_stanza_type);
+        else {
+            streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.internal_server_error);
+        }
     }
 
     /**
@@ -73,8 +77,7 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
         public void run() {
             logger.info("RECEIVED: {}", packet.toXML());
             JID jid = packet.getFrom();
-            XmppDevice device = factory.getXmppDeviceInstance((InetSocketAddress) ctx.channel().remoteAddress());
-            device.setJID(jid);
+            XmppDevice device = factory.getXmppDeviceInstanceByJid(jid);
             device.handlePacket(packet);
         }
     }

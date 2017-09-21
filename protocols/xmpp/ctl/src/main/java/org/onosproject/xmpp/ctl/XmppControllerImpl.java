@@ -10,11 +10,11 @@ import org.onosproject.xmpp.driver.XmppDeviceManager;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xmpp.packet.IQ;
-import org.xmpp.packet.Message;
-import org.xmpp.packet.Packet;
-import org.xmpp.packet.Presence;
+import org.xmpp.packet.*;
 
+import java.net.InetSocketAddress;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -68,6 +68,7 @@ public class XmppControllerImpl implements XmppController {
     private XmppDeviceFactory deviceFactory = XmppDeviceFactory.getInstance();
 
     ConcurrentMap<XmppDeviceId, XmppDevice> connectedDevices = Maps.newConcurrentMap();
+    ConcurrentMap<InetSocketAddress, XmppDeviceId> addressDeviceIdMap = Maps.newConcurrentMap();
 
     @Activate
     public void activate(ComponentContext context) {
@@ -89,6 +90,11 @@ public class XmppControllerImpl implements XmppController {
         logger.info("Stopped");
     }
 
+
+    @Override
+    public XmppDevice getDevice(XmppDeviceId xmppDeviceId) {
+        return connectedDevices.get(xmppDeviceId);
+    }
 
     @Override
     public void addXmppDeviceListener(XmppDeviceListener deviceListener) {
@@ -173,6 +179,20 @@ public class XmppControllerImpl implements XmppController {
             if(packet instanceof Presence)
                 for(XmppPresenceListener presenceListener : xmppPresenceListeners)
                     presenceListener.handleEvent((Presence) packet);
+        }
+
+        @Override
+        public XmppDeviceId getXmppDeviceIdBySocketAddress(InetSocketAddress address) {
+            Iterator iterator = connectedDevices.entrySet().iterator();
+            while(iterator.hasNext()) {
+                Map.Entry pair = (Map.Entry)iterator.next();
+                XmppDevice device = (XmppDevice) pair.getValue();
+                InetSocketAddress deviceAddress = (InetSocketAddress) device.getChannel().remoteAddress();
+                if(deviceAddress.equals(address)) {
+                    return (XmppDeviceId)pair.getKey();
+                }
+            }
+            return null;
         }
 
     }

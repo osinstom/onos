@@ -57,6 +57,8 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
         @Override
         public void publish(PublishInfo publishInfo) {
             logger.info("PUBLISH received");
+            final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.PUBLISH, publishInfo);
+            post(event);
         }
 
         @Override

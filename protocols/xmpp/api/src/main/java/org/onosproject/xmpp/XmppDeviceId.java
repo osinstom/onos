@@ -18,23 +18,20 @@ public final class XmppDeviceId extends Identifier<String> {
 
     private static final String SCHEME = "xmpp";
 
-    private JID jid = null;
-
-    public XmppDeviceId(InetSocketAddress address) {
-        super("xmpp" + address);
-    }
+    private JID jid;
 
     public XmppDeviceId(JID jid) {
-        super("xmpp" + jid.toString());
-    }
-
-    public void setJID(JID jid) {
+        super(jid.toString());
         this.jid = jid;
     }
 
     @Override
     public String toString() {
-        return jid == null ? identifier.toString() : identifier.toString() + "/" + jid.toString();
+        return identifier.toString();
+    }
+
+    public JID getJid() {
+        return jid;
     }
 
     public static URI uri(XmppDeviceId xmppDeviceId) {

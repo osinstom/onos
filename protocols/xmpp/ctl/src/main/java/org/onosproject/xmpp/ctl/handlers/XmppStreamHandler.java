@@ -34,18 +34,21 @@ public final class XmppStreamHandler implements Runnable {
     @Override
     public void run(){
         XmppDeviceFactory factory = XmppDeviceFactory.getInstance();
-        XmppDevice device = factory.getXmppDeviceInstance((InetSocketAddress) ctx.channel().remoteAddress());
+
         if(streamEvent instanceof StreamOpen) {
             StreamOpen streamOpen = (StreamOpen) streamEvent;
-            device.setJID(streamOpen.getFromJID());
+            XmppDevice device = factory.getXmppDeviceInstanceByJid(streamOpen.getFromJID());
+//            device.setJID(streamOpen.getFromJID());
             device.setChannel(ctx.channel());
             device.openStream(streamOpen);
             device.connectDevice();
         }
         if(streamEvent instanceof StreamClose) {
+            XmppDevice device = factory.getXmppDeviceInstanceBySocketAddress((InetSocketAddress) ctx.channel().remoteAddress());
             device.closeStream();
         }
         if(streamEvent instanceof StreamError) {
+            XmppDevice device = factory.getXmppDeviceInstanceBySocketAddress((InetSocketAddress) ctx.channel().remoteAddress());
             device.handleStreamError((StreamError) streamEvent);
         }
     }

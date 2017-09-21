@@ -16,7 +16,7 @@
         -->
 <drivers>
     <driver name="opencontrail"
-            manufacturer="OpenContrail" hwVersion="XMPP Device" swVersion=".*">
+            manufacturer="vnsw.contrailsystems.com" hwVersion="XMPP Device" swVersion=".*">
         <behaviour api="org.onosproject.pubsub.api.PubSubInfoConstructor"
                    impl="org.onosproject.drivers.opencontrail.OpenContrailPubSubInfoConstructor"/>
         <!-- OTHER BEHAVIOURS HERE -->

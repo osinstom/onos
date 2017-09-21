@@ -36,8 +36,8 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     }
 
     @Override
-    public void setJID(JID jid) {
-        this.deviceId.setJID(jid);
+    public Channel getChannel() {
+        return this.channel;
     }
 
     @Override

@@ -4,6 +4,7 @@ package org.onosproject.xmpp.ctl.handlers;
 import com.fasterxml.aalto.AsyncByteArrayFeeder;
 import com.fasterxml.aalto.AsyncXMLInputFactory;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
+import com.fasterxml.aalto.evt.EventAllocatorImpl;
 import com.fasterxml.aalto.stax.InputFactoryImpl;
 
 import io.netty.buffer.ByteBuf;
@@ -35,19 +36,23 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     private static final AsyncXMLInputFactory XML_INPUT_FACTORY = new InputFactoryImpl();
 
-    AsyncXMLStreamReader streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
-//    AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+    AsyncXMLStreamReader<AsyncByteArrayFeeder> streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
+    AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
 
+    Element parent = null;
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
         try {
-            AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
 
             byte[] buffer = new byte[in.readableBytes()];
             logger.info("Decoding.. {}", new String(buffer, CharsetUtil.UTF_8));
 
+            logger.info("ByteBuf, WriteIdx: {}, ReaderIdx: {}", in.writerIndex(), in.readerIndex());
+
             in.readBytes(buffer);
+            logger.info("ByteBuf, WriteIdx: {}, ReaderIdx: {}", in.writerIndex(), in.readerIndex());
+
             try {
                 streamFeeder.feedInput(buffer, 0, buffer.length);
             } catch (XMLStreamException exception) {
@@ -58,9 +63,6 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
             DocumentFactory df = DocumentFactory.getInstance();
             Document document = df.createDocument();
-            Element parent = null;
-
-            boolean isNotCompleted = false;
 
             while (!streamFeeder.needMoreInput()) {
                 int type = streamReader.next();
@@ -69,8 +71,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                     logger.info("Actual parent {}", parent.asXML());
                 switch (type) {
                     case AsyncXMLStreamReader.EVENT_INCOMPLETE:
-                        isNotCompleted = true;
-                        return;
+                        break;
                     case XMLStreamConstants.START_ELEMENT:
 //                    logger.info("Start element");
                         QName qname = (streamReader.getPrefix() == null) ?
@@ -97,8 +98,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
                         if (parent != null) {
                             parent.add(newElement);
-                        }
-                        else {
+                        } else {
                             document.add(newElement);
                         }
                         parent = newElement;
@@ -113,6 +113,11 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         if (parent != null) {
                             if(parent.getParent()!=null)
                                 parent = parent.getParent();
+                            else {
+                                // parent is null, so document parsing is finished, Decoder can return XMPP packet
+                                out.add(getXmppPacket(parent));
+                                parent = null;
+                            }
                         }
                         break;
                     case XMLStreamConstants.CHARACTERS:
@@ -123,11 +128,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         break;
                 }
             }
-            if(isNotCompleted == false)
-                out.add(getXmppPacket(parent));
         } catch (Exception e) {
-            logger.info(e.getMessage());
-            e.printStackTrace();
             throw e;
         }
 

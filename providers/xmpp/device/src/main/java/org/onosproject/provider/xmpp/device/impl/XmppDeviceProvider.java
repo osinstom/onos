@@ -37,7 +37,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
     private static final String APP_NAME = "org.onosproject.xmpp";
     private static final String XMPP = "xmpp";
     private static final String ADDRESS = "address";
-    private static final String MANUFACTURER = "UNKNOWN";
+
     private static final String HARDWARE_VERSION = "XMPP Device";
     private static final String SOFTWARE_VERSION = "1.0";
     private static final String SERIAL_NUMBER = "unknown";
@@ -101,6 +101,9 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
     private void connectDevice(XmppDeviceId xmppDeviceId) {
         DeviceId deviceId = getDeviceId(xmppDeviceId.toString());
 
+        // Assumption: manufacturer is uniquely identified by domain part of JID
+        String manufacturer = xmppDeviceId.getJid().getDomain();
+
         ChassisId cid = new ChassisId();
         String address = xmppDeviceId.toString();
         SparseAnnotations annotations = DefaultAnnotations.builder()
@@ -110,10 +113,11 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
         DeviceDescription deviceDescription = new DefaultDeviceDescription(
                 deviceId.uri(),
                 Device.Type.OTHER,
-                MANUFACTURER, HARDWARE_VERSION,
+                manufacturer, HARDWARE_VERSION,
                 SOFTWARE_VERSION, SERIAL_NUMBER,
                 cid, false,
                 annotations);
+
         if (deviceService.getDevice(deviceId) == null) {
             providerService.deviceConnected(deviceId, deviceDescription);
         }

@@ -23,7 +23,7 @@ public interface XmppDevice {
      */
     void setChannel(Channel channel);
 
-    void setJID(JID jid);
+    Channel getChannel();
 
     void setManager(XmppDeviceManager manager);
 
