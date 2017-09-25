@@ -13,6 +13,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pubsub.api.*;
 import org.onosproject.xmpp.XmppController;
+import org.onosproject.xmpp.XmppDevice;
+import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.XmppIqListener;
 import org.onosproject.xmpp.driver.XmppDeviceDriver;
 import org.osgi.service.component.ComponentContext;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
+import org.xmpp.packet.Packet;
 
 import java.util.Set;
 
@@ -59,9 +62,8 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     private XmppIqListener eventListener = new InternalXmppIqListener();
 
     /**
-     * Creates a provider with the supplied identifier.
+     * Creates a XmppPubSubProvider with the supplied identifier.
      *
-     * @param id provider id
      */
     public XmppPubSubProvider() {
         super(new ProviderId(XMPP, PROVIDER));
@@ -82,8 +84,15 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
     @Override
     public void sendNotifications(List<DeviceId> devices, PublishInfo publishInfo) {
+        for(DeviceId deviceId : devices) {
+            String strJid = deviceId.uri().getSchemeSpecificPart();
+            JID jid = new JID(strJid);
+            XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
+            XmppDevice xmppDevice = controller.getDevice(xmppDeviceId);
+            Packet packet = XmppPubSubUtils.constructXmppEventNotificationMessage(publishInfo);
 
-        
+            xmppDevice.sendPacket(packet);
+        }
     }
 
     private void handlePubSubOperation(XmppPubSubUtils.Method method, IQ iq) {
@@ -113,7 +122,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handleUnsubscribe(IQ operationBody) {
-
+//        providerService.unsubscribe();
     }
 
     private void handlePublish(IQ iq) {

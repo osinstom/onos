@@ -1,8 +1,12 @@
 package org.onosproject.provider.xmpp.pubsub;
 
 import org.dom4j.Element;
+import org.dom4j.util.UserDataElement;
+import org.onosproject.pubsub.api.PublishInfo;
 import org.slf4j.Logger;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.Message;
+import org.xmpp.packet.Packet;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -16,6 +20,18 @@ public class XmppPubSubUtils {
         UNSUBSCRIBE,
         PUBLISH,
         RETRACT
+    }
+
+    public static Packet constructXmppEventNotificationMessage(PublishInfo publishInfo) {
+
+        Message message = new Message();
+//        Element el = new UserDataElement();
+
+        
+
+
+        return message;
+
     }
 
     public static boolean isPubSub(IQ iqEvent) {
