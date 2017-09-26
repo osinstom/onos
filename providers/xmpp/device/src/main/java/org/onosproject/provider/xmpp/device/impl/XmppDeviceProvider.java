@@ -75,7 +75,9 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
 
     @Deactivate
     public void deactivate(ComponentContext context) {
-
+        controller.removeXmppDeviceListener(deviceListener);
+        providerRegistry.unregister(this);
+        providerService = null;
     }
 
     @Override
@@ -99,15 +101,14 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
     }
 
     private void connectDevice(XmppDeviceId xmppDeviceId) {
-        DeviceId deviceId = getDeviceId(xmppDeviceId.toString());
+        DeviceId deviceId = DeviceId.deviceId(xmppDeviceId.id());
 
         // Assumption: manufacturer is uniquely identified by domain part of JID
         String manufacturer = xmppDeviceId.getJid().getDomain();
 
         ChassisId cid = new ChassisId();
-        String address = xmppDeviceId.toString();
+
         SparseAnnotations annotations = DefaultAnnotations.builder()
-                .set(ADDRESS, address)
                 .set(AnnotationKeys.PROTOCOL, XMPP.toUpperCase())
                 .build();
         DeviceDescription deviceDescription = new DefaultDeviceDescription(
@@ -126,7 +127,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
     private void disconnectDevice(XmppDeviceId xmppDeviceId) {
         Preconditions.checkNotNull(xmppDeviceId, IS_NULL_MSG);
 
-        DeviceId deviceId = getDeviceId(xmppDeviceId.toString());
+        DeviceId deviceId = DeviceId.deviceId(xmppDeviceId.id());
         if (deviceService.getDevice(deviceId) != null) {
             providerService.deviceDisconnected(deviceId);
             logger.info("XMPP device {} removed from XMPP controller", deviceId);
@@ -134,16 +135,6 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
             logger.warn("XMPP device {} does not exist in the store, " +
                     "or it may already have been removed", deviceId);
         }
-    }
-
-    private DeviceId getDeviceId(String identifier) {
-        try {
-            return DeviceId.deviceId(new URI(XMPP, identifier, null));
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Unable to build deviceID for device "
-                    + identifier, e);
-        }
-
     }
 
     private class InternalXmppDeviceListener implements XmppDeviceListener {

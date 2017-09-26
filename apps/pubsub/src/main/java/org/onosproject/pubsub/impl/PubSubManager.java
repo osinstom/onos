@@ -10,6 +10,8 @@ import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.pubsub.api.*;
 import org.slf4j.Logger;
 
+import java.util.List;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
@@ -33,6 +35,15 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
     protected PubSubProviderService createProviderService(PubSubProvider provider) {
         return new InternalPubSubProviderService(provider);
     }
+
+    @Override
+    public void notifyPublishEvent(List<DeviceId> devices, PublishInfo info) {
+        logger.info("Provider for deviceId {}", info.getFromDevice().toString());
+        PubSubProvider provider = getProvider(info.getFromDevice());
+        logger.info("Providers: {}", getProviders());
+        provider.sendNotifications(devices, info);
+    }
+
 
     private class InternalPubSubProviderService
             extends AbstractProviderService<PubSubProvider>

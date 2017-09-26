@@ -21,7 +21,7 @@ public final class XmppDeviceId extends Identifier<String> {
     private JID jid;
 
     public XmppDeviceId(JID jid) {
-        super(jid.toString());
+        super(uri(jid.toString()).toString());
         this.jid = jid;
     }
 
@@ -34,9 +34,9 @@ public final class XmppDeviceId extends Identifier<String> {
         return jid;
     }
 
-    public static URI uri(XmppDeviceId xmppDeviceId) {
+    public static URI uri(String string) {
         try {
-            return new URI(SCHEME, xmppDeviceId.toString(), null);
+            return new URI(SCHEME, string, null);
         } catch (URISyntaxException e) {
             return null;
         }

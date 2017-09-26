@@ -60,30 +60,32 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     }
 
     @Override
-    public void sendPacket(Packet packet) {
-        Preconditions.checkNotNull(packet);
-        if(this.channel.isActive()) {
-            this.channel.write(packet);
-        } else {
-            logger.warn("Dropping XMPP packets for switch {} because channel is not connected: {}",
-                    this.deviceId, packet);
-        }
-    }
-
-    @Override
     public void writeRawXml(Document document) {
         Element root = document.getRootElement();
         Packet packet = null;
         if(root.getName().equals("iq")) {
             packet = new IQ(root);
-        }
-        else if (root.getName().equals("message")) {
+        } else if (root.getName().equals("message")) {
             packet = new Message(root);
         } else if (root.getName().equals("presence")) {
             packet = new Presence(root);
         }
         sendPacket(packet);
     }
+
+
+
+    @Override
+    public void sendPacket(Packet packet) {
+        Preconditions.checkNotNull(packet);
+        if(this.channel.isActive()) {
+            writeToChannel(packet);
+        } else {
+            logger.warn("Dropping XMPP packets for switch {} because channel is not connected: {}",
+                    this.deviceId, packet);
+        }
+    }
+
 
     @Override
     public void handlePacket(Packet packet) {
@@ -98,7 +100,7 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     }
 
     private void writeCloseStream() {
-        this.channel.writeAndFlush(new StreamClose());
+        writeToChannel(new StreamClose());
     }
 
     @Override
@@ -115,15 +117,25 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     }
 
     private void writeStreamOpen(StreamOpen streamOpenFromDevice) {
-        Element element = streamOpenFromDevice.getElement().createCopy();
-        JID from = streamOpenFromDevice.getFromJID();
-        JID to = streamOpenFromDevice.getToJID();
+
+        Element element = createReverseStreamOpenXmlElement(streamOpenFromDevice);
+        StreamOpen streamOpenToDevice = new StreamOpen(element);
+        writeToChannel(streamOpenToDevice);
+    }
+
+    private void writeToChannel(Object packet) {
+        this.channel.writeAndFlush(packet);
+    }
+
+
+    private Element createReverseStreamOpenXmlElement(StreamOpen original) {
+        Element element = original.getElement().createCopy();
+        JID from = original.getFromJID();
+        JID to = original.getToJID();
         element.addAttribute("from", to.toString());
         element.addAttribute("to", from.toString());
         element.addAttribute("id", this.channel.id().asShortText()); // use Netty Channel ID as XMPP stream ID
-
-        StreamOpen streamOpenToDevice = new StreamOpen(element);
-        this.channel.writeAndFlush(streamOpenToDevice);
+        return element;
     }
 
 

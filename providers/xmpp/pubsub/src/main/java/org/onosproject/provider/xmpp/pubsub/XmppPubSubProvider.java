@@ -59,7 +59,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
     protected PubSubProviderService providerService;
 
-    private XmppIqListener eventListener = new InternalXmppIqListener();
+    private XmppIqListener iqListener = new InternalXmppIqListener();
 
     /**
      * Creates a XmppPubSubProvider with the supplied identifier.
@@ -71,19 +71,22 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
     @Activate
     public void activate(ComponentContext context) {
-        logger.info("Started");
         providerService = providerRegistry.register(this);
-        controller.addXmppIqListener(eventListener);
+        controller.addXmppIqListener(iqListener);
         logger.info("Started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
+        controller.removeXmppIqListener(iqListener);
+        providerRegistry.unregister(this);
+        providerService = null;
         logger.info("Stopped");
     }
 
     @Override
     public void sendNotifications(List<DeviceId> devices, PublishInfo publishInfo) {
+        logger.info("Sending notifications...");
         for(DeviceId deviceId : devices) {
             String strJid = deviceId.uri().getSchemeSpecificPart();
             JID jid = new JID(strJid);
@@ -143,7 +146,8 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
         logger.info("Device: " + device);
         String nodeId = XmppPubSubUtils.getChildElement(iq.getChildElement())
                 .attribute("node").getValue();
-        SubscriptionInfo subscriptionInfo = new SubscriptionInfo(DeviceId.deviceId(device), nodeId);
+
+        SubscriptionInfo subscriptionInfo = new SubscriptionInfo(DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString())), nodeId);
         return subscriptionInfo;
     }
 
@@ -153,7 +157,8 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
 
         Element publish = (Element) iq.getChildElement().elements().get(0);
-        PublishInfo publishInfo = pubSubInfoConstructor.parsePublishInfo(publish);
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString()));
+        PublishInfo publishInfo = pubSubInfoConstructor.parsePublishInfo(deviceId, publish);
 
         return publishInfo;
     }
@@ -164,7 +169,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
         Driver driver = getDriverByJidDomain(domain);
         checkNotNull(driver);
 
-        DeviceId deviceId = DeviceId.deviceId(jid.toString());
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(jid.toString()));
         logger.info("Driver {} assigned to device {}", driver.name(), deviceId);
 
         DefaultDriverHandler handler =

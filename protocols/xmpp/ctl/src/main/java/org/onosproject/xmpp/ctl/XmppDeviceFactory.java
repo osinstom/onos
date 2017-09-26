@@ -140,7 +140,7 @@ public class XmppDeviceFactory {
         }
 
         DefaultDriverHandler handler =
-                new DefaultDriverHandler(new DefaultDriverData(driver, DeviceId.deviceId(uri(xmppDeviceId))));
+                new DefaultDriverHandler(new DefaultDriverData(driver, DeviceId.deviceId(uri(xmppDeviceId.toString()))));
         XmppDeviceDriver xmppDriver = driver.createBehaviour(handler, XmppDeviceDriver.class);
 
         return xmppDriver;

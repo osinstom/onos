@@ -115,7 +115,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                                 parent = parent.getParent();
                             else {
                                 // parent is null, so document parsing is finished, Decoder can return XMPP packet
-                                out.add(getXmppPacket(parent));
+                                out.add(recognizeAndReturnXmppPacket(parent));
                                 parent = null;
                             }
                         }
@@ -134,7 +134,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     }
 
-    private Packet getXmppPacket(Element root) throws UnsupportedStanzaTypeException {
+    private Packet recognizeAndReturnXmppPacket(Element root) throws UnsupportedStanzaTypeException {
         checkNotNull(root);
         Packet packet = null;
         if(root.getName().equals(XmppConstants.IQ_QNAME)) {

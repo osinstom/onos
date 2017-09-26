@@ -1,5 +1,6 @@
 package org.onosproject.provider.xmpp.pubsub;
 
+import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.util.UserDataElement;
 import org.onosproject.pubsub.api.PublishInfo;
@@ -14,6 +15,7 @@ public class XmppPubSubUtils {
 
     private static final String PUBSUB_NS = "http://jabber.org/protocol/pubsub";
     private static final String PUBSUB_ELEMENT = "pubsub";
+    private static final String PUBSUB_EVENT_NS = "http://jabber.org/protocol/pubsub#event";
 
     enum Method {
         SUBSCRIBE,
@@ -26,8 +28,16 @@ public class XmppPubSubUtils {
 
         Message message = new Message();
 //        Element el = new UserDataElement();
+//        BgpPublishInfo info = (BgpPublishInfo) publishInfo;
 
-        
+        DocumentFactory df = DocumentFactory.getInstance();
+        df.createElement("af").addText("1");
+
+
+        Element event = df.createElement("event", PUBSUB_EVENT_NS );
+
+        message.addChildElement("event", PUBSUB_EVENT_NS );
+        message.setType(Message.Type.normal);
 
 
         return message;
