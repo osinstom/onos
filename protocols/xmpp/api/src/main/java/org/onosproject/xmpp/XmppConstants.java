@@ -1,14 +1,11 @@
-package org.onosproject.xmpp.ctl;
+package org.onosproject.xmpp;
 
-/**
- * Created by autonet on 12.09.17.
- */
-public final class XmppConstants {
+public class XmppConstants {
 
     public static final String IQ_QNAME = "iq";
     public static final String PRESENCE_QNAME = "presence";
     public static final String MESSAGE_QNAME = "message";
     public static final String STREAM_QNAME = "stream";
-    
+    public static final String SERVER_JID = "bgp.contrail.com";
 
 }

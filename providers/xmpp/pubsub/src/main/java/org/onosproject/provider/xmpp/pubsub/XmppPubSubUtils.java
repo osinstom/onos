@@ -3,11 +3,14 @@ package org.onosproject.provider.xmpp.pubsub;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.util.UserDataElement;
+import org.onosproject.pubsub.api.PubSubInfoConstructor;
 import org.onosproject.pubsub.api.PublishInfo;
 import org.slf4j.Logger;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.Message;
 import org.xmpp.packet.Packet;
+
+import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -27,21 +30,38 @@ public class XmppPubSubUtils {
     public static Packet constructXmppEventNotificationMessage(PublishInfo publishInfo) {
 
         Message message = new Message();
-//        Element el = new UserDataElement();
-//        BgpPublishInfo info = (BgpPublishInfo) publishInfo;
 
         DocumentFactory df = DocumentFactory.getInstance();
-        df.createElement("af").addText("1");
-
 
         Element event = df.createElement("event", PUBSUB_EVENT_NS );
 
-        message.addChildElement("event", PUBSUB_EVENT_NS );
+        // items element
+        Element items = df.createElement("items");
+        items.addAttribute("node", publishInfo.getNodeId());
+
+        // item element
+        Element item = df.createElement("item");
+        item.addAttribute("id", "dsadasda"); // temporary, should generate ID
+
+        String domain = publishInfo.getFromDevice().uri().getSchemeSpecificPart().split("@")[1];
+
+        PubSubInfoConstructor constructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
+
+        List<Element> entries = constructor.constructPayload(publishInfo);
+
+        for(Element element : entries) {
+            item.elements().add(element);
+        }
+
+        items.elements().add(item);
+        event.elements().add(items);
+
+        // event element
+        message.getElement().elements().add(event);
+
         message.setType(Message.Type.normal);
 
-
         return message;
-
     }
 
     public static boolean isPubSub(IQ iqEvent) {

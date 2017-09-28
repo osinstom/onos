@@ -5,8 +5,10 @@ import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.onosproject.xmpp.XmppConstants;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.xmpp.XmppDeviceListener;
 import org.onosproject.xmpp.stream.*;
 import org.onosproject.xmpp.stream.StreamError;
 import org.slf4j.Logger;
@@ -73,10 +75,10 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
         sendPacket(packet);
     }
 
-
-
     @Override
     public void sendPacket(Packet packet) {
+        packet.setTo(this.deviceId.getJid());
+        packet.setFrom(new JID(XmppConstants.SERVER_JID));
         Preconditions.checkNotNull(packet);
         if(this.channel.isActive()) {
             writeToChannel(packet);

@@ -7,6 +7,7 @@ import org.onosproject.pubsub.api.PublishInfo;
 import org.dom4j.*;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -35,6 +36,29 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         }
 
         return info;
+    }
+
+    @Override
+    public List<Element> constructPayload(PublishInfo info) {
+        BgpPublishInfo bgpInfo = (BgpPublishInfo) info;
+        DocumentFactory df = DocumentFactory.getInstance();
+
+        List<Element> entries = new ArrayList<Element>();
+        for(BgpVpnPubSubEntry bgpEntry : bgpInfo.getEntries()) {
+            // entry element
+            Element entry = df.createElement("entry");
+            Element nlri = df.createElement("nlri");
+            Element nlriAf = df.createElement("af");
+            nlriAf.addText(Integer.toString(bgpEntry.getNrliAf()));
+            Element nlriIpAddress = df.createElement("address");
+            nlriIpAddress.addText(bgpEntry.getNrliIpAddress());
+            nlri.elements().add(nlriAf);
+            nlri.elements().add(nlriIpAddress);
+            entry.elements().add(nlri);
+            entries.add(entry);
+        }
+
+        return entries;
     }
 
     private String getVpnInstanceName(Element element) {

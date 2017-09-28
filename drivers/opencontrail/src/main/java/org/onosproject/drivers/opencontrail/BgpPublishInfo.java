@@ -18,6 +18,11 @@ public class BgpPublishInfo extends PublishInfo {
         entries.add(entry);
     }
 
+    public List<BgpVpnPubSubEntry> getEntries() {
+        return entries;
+    }
+
+
     @Override
     public String toString() {
         return "BgpPublishInfo{" +

@@ -4,7 +4,6 @@ package org.onosproject.xmpp.ctl.handlers;
 import com.fasterxml.aalto.AsyncByteArrayFeeder;
 import com.fasterxml.aalto.AsyncXMLInputFactory;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
-import com.fasterxml.aalto.evt.EventAllocatorImpl;
 import com.fasterxml.aalto.stax.InputFactoryImpl;
 
 import io.netty.buffer.ByteBuf;
@@ -13,9 +12,10 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import io.netty.util.CharsetUtil;
 import org.dom4j.*;
+import org.onosproject.xmpp.XmppConstants;
+import org.onosproject.xmpp.XmppDeviceListener;
 import org.onosproject.xmpp.ctl.exception.UnsupportedStanzaTypeException;
 import org.onosproject.xmpp.stream.StreamClose;
-import org.onosproject.xmpp.ctl.XmppConstants;
 import org.onosproject.xmpp.stream.StreamOpen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
