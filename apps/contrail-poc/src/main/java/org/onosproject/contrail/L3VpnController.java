@@ -4,6 +4,10 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.*;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
@@ -33,6 +37,9 @@ public class L3VpnController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetL3VpnStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private PubSubListener listener = new InternalPubSubListener();
 
@@ -73,6 +80,27 @@ public class L3VpnController {
             mapStore.put(vpnInstanceName, devices);
         }
         logger.info("NEW_SUBSCRIPTION handled. Status of subscrptions: /n {}", mapStore.toString());
+
+
+        Driver driver = driverService.getDriver(device);
+        DefaultDriverHandler handler =
+                new DefaultDriverHandler(new DefaultDriverData(driver, device));
+        CustomXmppPacketSender sender = null;
+        if(driver.hasBehaviour(CustomXmppPacketSender.class)) {
+            sender = driver.createBehaviour(handler, CustomXmppPacketSender.class);
+        }
+
+//        sender.sendCustomXmppPacket(Type.IQ, );
+    }
+
+    private void handleDeleteSubscription(SubscriptionInfo info) {
+        String vpnInstanceName = info.getNodeId();
+        List<DeviceId> vpnDevices = mapStore.get(vpnInstanceName);
+        DeviceId device = info.getFromDevice();
+        if(vpnDevices.contains(device)) {
+            vpnDevices.remove(device);
+            logger.info("Device '{}' has been removed from VPN '{}'", device, vpnInstanceName);
+        }
     }
 
     private class InternalPubSubListener implements PubSubListener {
@@ -89,6 +117,7 @@ public class L3VpnController {
                 case DELETE_SUBSCRIPTION:
                     SubscriptionInfo info1 = (SubscriptionInfo) event.subject();
                     logger.info(info1.toString());
+                    handleDeleteSubscription(info1);
                     // TODO: Remove subscription
                     break;
                 case PUBLISH:
@@ -102,5 +131,6 @@ public class L3VpnController {
             }
         }
     }
+
 
 }

@@ -123,8 +123,13 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
         providerService.subscribe(subscriptionInfo);
     }
 
-    private void handleUnsubscribe(IQ operationBody) {
-//        providerService.unsubscribe();
+    private void handleUnsubscribe(IQ iq) {
+        SubscriptionInfo subscriptionInfo = constructSubscriptionInfo(iq);
+        notifyUnsubscribeToCore(subscriptionInfo);
+    }
+
+    private void notifyUnsubscribeToCore(SubscriptionInfo subscriptionInfo) {
+        providerService.unsubscribe(subscriptionInfo);
     }
 
     private void handlePublish(IQ iq) {
@@ -136,8 +141,13 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
         providerService.publish(publishInfo);
     }
 
-    private void handleRetract(IQ operationBody) {
+    private void handleRetract(IQ iq) {
+        PublishInfo publishInfo = constructPublishInfo(iq);
+        notifyRetractInfoToCore(publishInfo);
+    }
 
+    private void notifyRetractInfoToCore(PublishInfo publishInfo) {
+        providerService.retract(publishInfo);
     }
 
     private SubscriptionInfo constructSubscriptionInfo(IQ iq) {
@@ -161,9 +171,6 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
         return publishInfo;
     }
-
-
-
 
     private class InternalXmppIqListener implements XmppIqListener {
 
