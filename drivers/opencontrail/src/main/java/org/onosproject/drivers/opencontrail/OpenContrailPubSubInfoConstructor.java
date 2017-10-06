@@ -24,16 +24,20 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
 
         String vpnInstanceName = getVpnInstanceName(pubsubPayload);
 
-        BgpPublishInfo info = new BgpPublishInfo(deviceId, vpnInstanceName);
+//        BgpPublishInfo info = new BgpPublishInfo(deviceId, vpnInstanceName);
+//
+//        List<Element> items = pubsubPayload.elements();
+//        for(Element item : items) {
+//            List<Element> entries = item.elements();
+//            for(Element entry : entries) {
+//                BgpVpnPubSubEntry bgpVpnEntry = getBgpVpnPubSubEntry(entry);
+//                info.addEntry(bgpVpnEntry);
+//            }
+//        }
 
-        List<Element> items = pubsubPayload.elements();
-        for(Element item : items) {
-            List<Element> entries = item.elements();
-            for(Element entry : entries) {
-                BgpVpnPubSubEntry bgpVpnEntry = getBgpVpnPubSubEntry(entry);
-                info.addEntry(bgpVpnEntry);
-            }
-        }
+        PublishInfo info = new PublishInfo(deviceId, vpnInstanceName);
+        Element item = (Element) pubsubPayload.elements().get(0);
+        info.setPayload(item);
 
         return info;
     }

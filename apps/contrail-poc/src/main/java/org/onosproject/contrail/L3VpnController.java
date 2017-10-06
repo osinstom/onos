@@ -4,6 +4,9 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.*;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
@@ -36,12 +39,16 @@ public class L3VpnController {
     protected PubSubService pubSubService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetL3VpnStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
     private PubSubListener listener = new InternalPubSubListener();
+    private DeviceListener deviceListener = new InternalDeviceListener();
 
     private ConcurrentMap<String, List<DeviceId>> mapStore = Maps.newConcurrentMap();
 
@@ -49,22 +56,40 @@ public class L3VpnController {
     public void activate() {
         logger.info("Started");
         pubSubService.addListener(listener);
+        deviceService.addListener(deviceListener);
     }
 
     @Deactivate
     public void deactivate() {
         logger.info("Stopped");
         pubSubService.removeListener(listener);
+        deviceService.removeListener(deviceListener);
     }
 
     private void handlePublish(PublishInfo publishInfo) {
         String vpnInstance = publishInfo.getNodeId();
         if(mapStore.containsKey(vpnInstance)) {
-            List<DeviceId> vpnDevices = mapStore.get(vpnInstance);
-            pubSubService.notifyPublishEvent(vpnDevices, publishInfo);
+            DeviceId publisher = publishInfo.getFromDevice();
+            List<DeviceId> devicesToNotify = getListOfDevicesToNotify(vpnInstance, publisher);
+            pubSubService.notifyPublishEvent(devicesToNotify, publishInfo);
+            logger.info("Status of the VPN Store after Publish: " + mapStore.toString());
         } else {
             // TODO: notify error <item-not-found>
         }
+    }
+
+    /**
+     * This method should return all VPN members except publisher
+     * @return
+     */
+    private List<DeviceId> getListOfDevicesToNotify(String vpnInstance, DeviceId publisher) {
+        List<DeviceId> vpnDevices = mapStore.get(vpnInstance);
+        List<DeviceId> devicesToNotify = new ArrayList<DeviceId>();
+
+        for(DeviceId device : vpnDevices)
+            if(!device.equals(publisher))
+                devicesToNotify.add(device);
+        return devicesToNotify;
     }
 
     private void handleNewSubscription(SubscriptionInfo info) {
@@ -82,24 +107,38 @@ public class L3VpnController {
         logger.info("NEW_SUBSCRIPTION handled. Status of subscrptions: /n {}", mapStore.toString());
 
 
-        Driver driver = driverService.getDriver(device);
-        DefaultDriverHandler handler =
-                new DefaultDriverHandler(new DefaultDriverData(driver, device));
-        CustomXmppPacketSender sender = null;
-        if(driver.hasBehaviour(CustomXmppPacketSender.class)) {
-            sender = driver.createBehaviour(handler, CustomXmppPacketSender.class);
-        }
-
-//        sender.sendCustomXmppPacket(Type.IQ, );
+//        Driver driver = driverService.getDriver(device);
+//        DefaultDriverHandler handler =
+//                new DefaultDriverHandler(new DefaultDriverData(driver, device));
+//        CustomXmppPacketSender sender = null;
+//        if(driver.hasBehaviour(CustomXmppPacketSender.class)) {
+//            sender = driver.createBehaviour(handler, CustomXmppPacketSender.class);
+//        }
+//
+////        sender.sendCustomXmppPacket(Type.IQ, );
     }
 
     private void handleDeleteSubscription(SubscriptionInfo info) {
         String vpnInstanceName = info.getNodeId();
-        List<DeviceId> vpnDevices = mapStore.get(vpnInstanceName);
         DeviceId device = info.getFromDevice();
-        if(vpnDevices.contains(device)) {
-            vpnDevices.remove(device);
-            logger.info("Device '{}' has been removed from VPN '{}'", device, vpnInstanceName);
+        removeFromVpnIfExists(vpnInstanceName, device);
+    }
+
+    private void removeFromVpnIfExists(String vpnInstanceName, DeviceId deviceId) {
+        List<DeviceId> vpnDevices = mapStore.get(vpnInstanceName);
+        if(vpnDevices.contains(deviceId)) {
+            vpnDevices.remove(deviceId);
+            logger.info("Device '{}' has been removed from VPN '{}'", deviceId, vpnInstanceName);
+        }
+    }
+
+    private void removeFromStoreIfExists(DeviceId deviceId) {
+        for(String vpn : mapStore.keySet()) {
+            List<DeviceId> vpnDevices = mapStore.get(vpn);
+            if(vpnDevices.contains(deviceId)) {
+                vpnDevices.remove(deviceId);
+                logger.info("Device '{}' has been removed from VPN '{}'", deviceId, vpn);
+            }
         }
     }
 
@@ -133,4 +172,21 @@ public class L3VpnController {
     }
 
 
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+                case DEVICE_AVAILABILITY_CHANGED:
+                case DEVICE_REMOVED:
+                    logger.info("Device disconnected");
+                    DeviceId device = event.subject().id();
+                    if(!deviceService.isAvailable(device)) {
+                        logger.info("IS not available");
+                        removeFromStoreIfExists(device);
+                    }
+                    break;
+            }
+        }
+    }
 }

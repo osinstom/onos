@@ -39,27 +39,27 @@ public class XmppPubSubUtils {
         Element items = df.createElement("items");
         items.addAttribute("node", publishInfo.getNodeId());
 
-        // item element
-        Element item = df.createElement("item");
-        item.addAttribute("id", "dsadasda"); // temporary, should generate ID
+//        // item element
+//        Element item = df.createElement("item");
+//        item.addAttribute("id", "dsadasda"); // temporary, should generate ID
 
-        String domain = publishInfo.getFromDevice().uri().getSchemeSpecificPart().split("@")[1];
+//        String domain = publishInfo.getFromDevice().uri().getSchemeSpecificPart().split("@")[1];
 
-        PubSubInfoConstructor constructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
+//        PubSubInfoConstructor constructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
+//
+//        List<Element> entries = constructor.constructPayload(publishInfo);
+//
+//        for(Element element : entries) {
+//            item.elements().add(element);
+//        }
+//
 
-        List<Element> entries = constructor.constructPayload(publishInfo);
+        items.elements().add((Element) ((Element) publishInfo.getPayload()).createCopy());
 
-        for(Element element : entries) {
-            item.elements().add(element);
-        }
-
-        items.elements().add(item);
         event.elements().add(items);
 
         // event element
         message.getElement().elements().add(event);
-
-        message.setType(Message.Type.normal);
 
         return message;
     }
