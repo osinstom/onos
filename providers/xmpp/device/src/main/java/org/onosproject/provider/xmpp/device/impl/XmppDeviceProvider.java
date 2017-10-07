@@ -18,6 +18,7 @@ import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.XmppDeviceListener;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+import org.xmpp.packet.JID;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -92,7 +93,15 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        return true;
+        String id = deviceId.uri().getSchemeSpecificPart();
+        JID jid = new JID(id);
+        XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
+        if(controller.getDevice(xmppDeviceId)==null) {
+            logger.info("Device {} is not available!", deviceId);
+            return false;
+        }
+        else
+            return true;
     }
 
     @Override
@@ -116,7 +125,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
                 Device.Type.OTHER,
                 manufacturer, HARDWARE_VERSION,
                 SOFTWARE_VERSION, SERIAL_NUMBER,
-                cid, false,
+                cid, true,
                 annotations);
 
         if (deviceService.getDevice(deviceId) == null) {
