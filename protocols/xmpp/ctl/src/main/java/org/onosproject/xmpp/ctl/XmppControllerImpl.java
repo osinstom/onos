@@ -94,7 +94,6 @@ public class XmppControllerImpl implements XmppController {
     @Override
     public XmppDevice getDevice(XmppDeviceId xmppDeviceId) {
         logger.info(connectedDevices.toString());
-        logger.info("Returning " + connectedDevices.get(xmppDeviceId));
         return connectedDevices.get(xmppDeviceId);
     }
 

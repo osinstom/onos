@@ -173,12 +173,12 @@ public class L3VpnController {
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
+                case DEVICE_UPDATED:
+                case DEVICE_SUSPENDED:
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_REMOVED:
-                    logger.info("Device disconnected");
                     DeviceId device = event.subject().id();
                     if(!deviceService.isAvailable(device)) {
-                        logger.info("IS not available");
                         removeFromStoreIfExists(device);
                     }
                     break;

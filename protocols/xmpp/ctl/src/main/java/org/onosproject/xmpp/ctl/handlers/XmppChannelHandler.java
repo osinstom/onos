@@ -41,7 +41,6 @@ public class XmppChannelHandler extends ChannelInboundHandlerAdapter {
         if(msg instanceof Packet) {
             executorService.execute(new XmppPacketHandler(ctx, (Packet) msg));
         }
-
     }
 
     @Override
