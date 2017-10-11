@@ -20,9 +20,8 @@ import org.onosproject.xmpp.driver.XmppDeviceDriver;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
@@ -84,17 +83,45 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     @Override
-    public void sendNotifications(List<DeviceId> devices, PublishInfo publishInfo) {
-        logger.info("Sending notifications...");
-        for(DeviceId deviceId : devices) {
-            String strJid = deviceId.uri().getSchemeSpecificPart();
-            JID jid = new JID(strJid);
-            XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
-            XmppDevice xmppDevice = controller.getDevice(xmppDeviceId);
-            Packet packet = XmppPubSubUtils.constructXmppEventNotificationMessage(publishInfo);
-
-            xmppDevice.sendPacket(packet);
+    public void sendNotification(List<DeviceId> devices, Object message) {
+        try {
+            logger.info("Sending notifications...");
+            notifyDevices(devices, message);
+        } catch(IllegalArgumentException e) {
+            throw e;
         }
+    }
+
+    private void notifyDevices(List<DeviceId> devices, Object info) {
+        for(DeviceId device : devices) {
+            sendNotification(device, info);
+        }
+    }
+
+    @Override
+    public void sendNotification(DeviceId device, Object message) {
+        try {
+            XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(device);
+            Packet notification = constructXmppNotificationPacket(xmppDeviceId, message);
+            sendXmppPacketToDevice(xmppDeviceId, notification);
+        } catch(IllegalFormatException e) {
+            throw e;
+        }
+
+    }
+
+    private Packet constructXmppNotificationPacket(XmppDeviceId xmppDeviceId, Object info) {
+        return XmppPubSubUtils.constructXmppEventNotification(xmppDeviceId, info);
+    }
+
+    private void sendXmppPacketToDevice(XmppDeviceId xmppDeviceId, Packet packet) {
+        XmppDevice xmppDevice = getXmppDevice(xmppDeviceId);
+        xmppDevice.sendPacket(packet);
+    }
+
+    private XmppDevice getXmppDevice(XmppDeviceId xmppDeviceId) {
+        XmppDevice xmppDevice = controller.getDevice(xmppDeviceId);
+        return xmppDevice;
     }
 
     private void handlePubSubOperation(XmppPubSubUtils.Method method, IQ iq) {

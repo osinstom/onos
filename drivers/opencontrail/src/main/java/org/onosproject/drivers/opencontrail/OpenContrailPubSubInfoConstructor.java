@@ -6,8 +6,11 @@ import org.onosproject.pubsub.api.PubSubInfoConstructor;
 import org.onosproject.pubsub.api.PublishInfo;
 import org.dom4j.*;
 import org.slf4j.Logger;
+import org.xmpp.packet.IQ;
+import org.xmpp.packet.Packet;
 
 import java.util.ArrayList;
+import java.util.IllegalFormatException;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -63,6 +66,23 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         }
 
         return entries;
+    }
+
+    @Override
+    public Packet constructNotification(Object message) throws IllegalArgumentException {
+        if(message instanceof Element) {
+            Packet config = createConfigXmppPacket(message);
+            return config;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private Packet createConfigXmppPacket(Object message) {
+        Element config = (Element) message;
+        IQ iq = new IQ(IQ.Type.set);
+        iq.setChildElement(config);
+        return iq;
     }
 
     private String getVpnInstanceName(Element element) {

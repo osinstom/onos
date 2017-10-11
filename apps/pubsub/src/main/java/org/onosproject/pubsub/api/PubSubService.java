@@ -9,4 +9,8 @@ public interface PubSubService extends ListenerService<PubSubEvent, PubSubListen
 
     void notifyPublishEvent(List<DeviceId> devices, PublishInfo info);
 
+    void sendEventNotification(List<DeviceId> devices, Object notificationInfo);
+
+    void sendEventNotification(DeviceId deviceId, Object notificationInfo);
+
 }

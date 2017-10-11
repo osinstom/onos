@@ -3,22 +3,37 @@ package org.onosproject.provider.xmpp.pubsub;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.util.UserDataElement;
+import org.onosproject.net.DeviceId;
 import org.onosproject.pubsub.api.PubSubInfoConstructor;
 import org.onosproject.pubsub.api.PublishInfo;
+import org.onosproject.xmpp.XmppDevice;
+import org.onosproject.xmpp.XmppDeviceId;
 import org.slf4j.Logger;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.JID;
 import org.xmpp.packet.Message;
 import org.xmpp.packet.Packet;
 
+import java.util.IllegalFormatException;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class XmppPubSubUtils {
 
+    private static final Logger logger = getLogger(getClass());
+
     private static final String PUBSUB_NS = "http://jabber.org/protocol/pubsub";
     private static final String PUBSUB_ELEMENT = "pubsub";
     private static final String PUBSUB_EVENT_NS = "http://jabber.org/protocol/pubsub#event";
+
+    public static XmppDeviceId getXmppDeviceId(DeviceId device) {
+        String strJid = device.uri().getSchemeSpecificPart();
+        logger.info("Scheme specific: " + strJid);
+        JID jid = new JID(strJid);
+        XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
+        return xmppDeviceId;
+    }
 
     enum Method {
         SUBSCRIBE,
@@ -26,6 +41,19 @@ public class XmppPubSubUtils {
         PUBLISH,
         RETRACT
     }
+
+    public static Packet constructXmppEventNotification(XmppDeviceId xmppDeviceId, Object message)
+            throws IllegalFormatException {
+        String strJid = xmppDeviceId.id();
+        JID jid = new JID(strJid);
+        String domain = jid.getDomain();
+
+        PubSubInfoConstructor constructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
+        Packet packet = (Packet) constructor.constructNotification(message);
+
+        return packet;
+    }
+
 
     public static Packet constructXmppEventNotificationMessage(PublishInfo publishInfo) {
 

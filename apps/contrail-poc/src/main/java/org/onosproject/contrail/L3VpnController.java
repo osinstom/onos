@@ -2,6 +2,8 @@ package org.onosproject.contrail;
 
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.*;
+import org.dom4j.DocumentFactory;
+import org.dom4j.Element;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
@@ -106,16 +108,10 @@ public class L3VpnController {
         }
         logger.info("NEW_SUBSCRIPTION handled. Status of subscrptions: /n {}", mapStore.toString());
 
+//        Element config = DocumentFactory.getInstance().createElement("config");
+        String config = "error";
+        pubSubService.sendEventNotification(device, config);
 
-//        Driver driver = driverService.getDriver(device);
-//        DefaultDriverHandler handler =
-//                new DefaultDriverHandler(new DefaultDriverData(driver, device));
-//        CustomXmppPacketSender sender = null;
-//        if(driver.hasBehaviour(CustomXmppPacketSender.class)) {
-//            sender = driver.createBehaviour(handler, CustomXmppPacketSender.class);
-//        }
-//
-////        sender.sendCustomXmppPacket(Type.IQ, );
     }
 
     private void handleDeleteSubscription(SubscriptionInfo info) {

@@ -41,5 +41,15 @@
             <artifactId>tinder</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.igniterealtime</groupId>
+            <artifactId>tinder</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.igniterealtime</groupId>
+            <artifactId>tinder</artifactId>
+            <version>RELEASE</version>
+        </dependency>
     </dependencies>
 </project>
