@@ -104,7 +104,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
             XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(device);
             Packet notification = constructXmppNotificationPacket(xmppDeviceId, message);
             sendXmppPacketToDevice(xmppDeviceId, notification);
-        } catch(IllegalFormatException e) {
+        } catch(IllegalArgumentException e) {
             throw e;
         }
 

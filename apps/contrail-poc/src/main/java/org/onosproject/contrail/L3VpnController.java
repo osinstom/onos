@@ -73,7 +73,7 @@ public class L3VpnController {
         if(mapStore.containsKey(vpnInstance)) {
             DeviceId publisher = publishInfo.getFromDevice();
             List<DeviceId> devicesToNotify = getListOfDevicesToNotify(vpnInstance, publisher);
-            pubSubService.notifyPublishEvent(devicesToNotify, publishInfo);
+            pubSubService.sendEventNotification(devicesToNotify, publishInfo);
             logger.info("Status of the VPN Store after Publish: " + mapStore.toString());
         } else {
             // TODO: notify error <item-not-found>
@@ -108,9 +108,13 @@ public class L3VpnController {
         }
         logger.info("NEW_SUBSCRIPTION handled. Status of subscrptions: /n {}", mapStore.toString());
 
-//        Element config = DocumentFactory.getInstance().createElement("config");
-        String config = "error";
-        pubSubService.sendEventNotification(device, config);
+        Element config = DocumentFactory.getInstance().createElement("config");
+
+        try {
+            pubSubService.sendEventNotification(device, config);
+        } catch(IllegalArgumentException e) {
+            logger.error("Notification has not been sent!");
+        }
 
     }
 

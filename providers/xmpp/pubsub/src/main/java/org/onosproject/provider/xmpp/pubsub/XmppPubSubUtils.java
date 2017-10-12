@@ -21,7 +21,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class XmppPubSubUtils {
 
-    private static final Logger logger = getLogger(getClass());
+    private static final Logger logger = getLogger(XmppPubSubUtils.class);
 
     private static final String PUBSUB_NS = "http://jabber.org/protocol/pubsub";
     private static final String PUBSUB_ELEMENT = "pubsub";
@@ -44,8 +44,7 @@ public class XmppPubSubUtils {
 
     public static Packet constructXmppEventNotification(XmppDeviceId xmppDeviceId, Object message)
             throws IllegalFormatException {
-        String strJid = xmppDeviceId.id();
-        JID jid = new JID(strJid);
+        JID jid = xmppDeviceId.getJid();
         String domain = jid.getDomain();
 
         PubSubInfoConstructor constructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);

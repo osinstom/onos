@@ -7,10 +7,21 @@ import java.util.List;
 
 public interface PubSubService extends ListenerService<PubSubEvent, PubSubListener> {
 
-    void notifyPublishEvent(List<DeviceId> devices, PublishInfo info);
+    /**
+     * Notifying Provider about PubSub event notification for a list of devices.
+     * @param devices
+     * @param notificationInfo
+     * @throws IllegalArgumentException
+     */
+    void sendEventNotification(List<DeviceId> devices, Object notificationInfo) throws IllegalArgumentException;
 
-    void sendEventNotification(List<DeviceId> devices, Object notificationInfo);
 
-    void sendEventNotification(DeviceId deviceId, Object notificationInfo);
+    /**
+     * Notifying Provider about PubSub event notification for a particular device.
+     * @param deviceId
+     * @param notificationInfo
+     * @throws IllegalArgumentException
+     */
+    void sendEventNotification(DeviceId deviceId, Object notificationInfo) throws IllegalArgumentException;
 
 }

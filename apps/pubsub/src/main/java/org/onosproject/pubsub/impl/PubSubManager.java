@@ -37,16 +37,10 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
     }
 
     @Override
-    public void notifyPublishEvent(List<DeviceId> devices, PublishInfo info) {
-        logger.info("Provider for deviceId {}", info.getFromDevice().toString());
-        PubSubProvider provider = getProvider(info.getFromDevice());
-        logger.info("Providers: {}", getProviders());
-        provider.sendNotification(devices, info);
-    }
-
-    @Override
     public void sendEventNotification(List<DeviceId> devices, Object notificationInfo) {
-
+        for(DeviceId deviceId : devices) {
+            sendEventNotification(deviceId, notificationInfo);
+        }
     }
 
     @Override
