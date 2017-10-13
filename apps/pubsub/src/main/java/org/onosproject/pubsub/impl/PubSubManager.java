@@ -69,6 +69,8 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
         @Override
         public void unsubscribe(SubscriptionInfo subscriptionInfo) {
             logger.info("UNSUBSCRIBE received");
+            final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.DELETE_SUBSCRIPTION, subscriptionInfo);
+            post(event);
         }
 
         @Override

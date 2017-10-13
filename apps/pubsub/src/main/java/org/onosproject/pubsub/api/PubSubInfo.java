@@ -20,4 +20,11 @@ public class PubSubInfo {
         return fromDevice;
     }
 
+    @Override
+    public String toString() {
+        return "PubSubInfo{" +
+                "fromDevice=" + fromDevice +
+                ", nodeId='" + nodeId + '\'' +
+                '}';
+    }
 }

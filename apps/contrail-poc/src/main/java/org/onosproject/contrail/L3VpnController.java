@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -121,23 +122,32 @@ public class L3VpnController {
     private void handleDeleteSubscription(SubscriptionInfo info) {
         String vpnInstanceName = info.getNodeId();
         DeviceId device = info.getFromDevice();
-        removeFromVpnIfExists(vpnInstanceName, device);
+        removeFromVpnIfDeviceExists(vpnInstanceName, device);
     }
 
-    private void removeFromVpnIfExists(String vpnInstanceName, DeviceId deviceId) {
+    private void handleRetract(Retract retractMsg) {
+        String vpnInstance = retractMsg.getNodeId();
+        // TODO: Need to handle retract action, check a proper behaviour in specification
+    }
+
+    private void removeFromVpnIfDeviceExists(String vpnInstanceName, DeviceId deviceId) {
         List<DeviceId> vpnDevices = mapStore.get(vpnInstanceName);
+        checkNotNull(vpnDevices);
         if(vpnDevices.contains(deviceId)) {
             vpnDevices.remove(deviceId);
-            logger.info("Device '{}' has been removed from VPN '{}'", deviceId, vpnInstanceName);
+            logger.info("Device '{}' has been removed from VPN '{}'. Status of the VPN store: {}",
+                    deviceId, vpnInstanceName, mapStore.toString());
         }
     }
 
-    private void removeFromStoreIfExists(DeviceId deviceId) {
+    private void removeFromStoreIfDeviceExists(DeviceId deviceId) {
         for(String vpn : mapStore.keySet()) {
             List<DeviceId> vpnDevices = mapStore.get(vpn);
+            checkNotNull(vpnDevices);
             if(vpnDevices.contains(deviceId)) {
                 vpnDevices.remove(deviceId);
-                logger.info("Device '{}' has been removed from VPN '{}'", deviceId, vpn);
+                logger.info("Device '{}' has been removed from VPN '{}'. Status of the VPN store: {}",
+                        deviceId, vpn, mapStore.toString());
             }
         }
     }
@@ -157,15 +167,15 @@ public class L3VpnController {
                     SubscriptionInfo info1 = (SubscriptionInfo) event.subject();
                     logger.info(info1.toString());
                     handleDeleteSubscription(info1);
-                    // TODO: Remove subscription
                     break;
                 case PUBLISH:
                     PublishInfo publishInfo = (PublishInfo) event.subject();
                     logger.info(publishInfo.toString());
                     handlePublish(publishInfo);
-                    // TODO: Handle publish
                     break;
                 case RETRACT:
+                    Retract retractMessage = (Retract) event.subject();
+                    handleRetract(retractMessage);
                     break;
             }
         }
@@ -183,10 +193,11 @@ public class L3VpnController {
                 case DEVICE_REMOVED:
                     DeviceId device = event.subject().id();
                     if(!deviceService.isAvailable(device)) {
-                        removeFromStoreIfExists(device);
+                        removeFromStoreIfDeviceExists(device);
                     }
                     break;
             }
         }
+
     }
 }
