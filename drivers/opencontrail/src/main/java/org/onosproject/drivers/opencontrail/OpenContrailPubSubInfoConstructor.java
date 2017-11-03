@@ -19,7 +19,6 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
 
     private final Logger logger = getLogger(getClass());
 
-
     @Override
     public PublishInfo parsePublishInfo(DeviceId deviceId, Object payload) {
         Element pubsubPayload = (Element) payload;
@@ -27,25 +26,13 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
 
         String vpnInstanceName = getVpnInstanceName(pubsubPayload);
 
-//        BgpPublishInfo info = new BgpPublishInfo(deviceId, vpnInstanceName);
-//
-//        List<Element> items = pubsubPayload.elements();
-//        for(Element item : items) {
-//            List<Element> entries = item.elements();
-//            for(Element entry : entries) {
-//                BgpVpnPubSubEntry bgpVpnEntry = getBgpVpnPubSubEntry(entry);
-//                info.addEntry(bgpVpnEntry);
-//            }
-//        }
-
         PublishInfo info = new PublishInfo(deviceId, vpnInstanceName);
-        Element item = (Element) pubsubPayload.elements().get(0);
+        Element item = ((Element) pubsubPayload.elements().get(0)).createCopy();
         info.setPayload(item);
 
         return info;
     }
 
-    @Override
     public List<Element> constructPayload(PublishInfo info) {
         BgpPublishInfo bgpInfo = (BgpPublishInfo) info;
         DocumentFactory df = DocumentFactory.getInstance();
@@ -69,12 +56,12 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
     }
 
     @Override
-    public Packet constructNotification(Object message) throws IllegalArgumentException {
+    public Packet constructNotification(Object message) throws UnsupportedOperationException {
         if(message instanceof Element) {
             Packet config = createConfigXmppPacket(message);
             return config;
         } else {
-            throw new IllegalArgumentException();
+            throw new UnsupportedOperationException();
         }
     }
 

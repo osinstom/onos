@@ -109,13 +109,13 @@ public class L3VpnController {
         }
         logger.info("NEW_SUBSCRIPTION handled. Status of subscrptions: /n {}", mapStore.toString());
 
-        Element config = DocumentFactory.getInstance().createElement("config");
-
-        try {
-            pubSubService.sendEventNotification(device, config);
-        } catch(IllegalArgumentException e) {
-            logger.error("Notification has not been sent!");
-        }
+//        Element config = DocumentFactory.getInstance().createElement("config");
+//
+//        try {
+//            pubSubService.sendEventNotification(device, config);
+//        } catch(IllegalArgumentException e) {
+//            logger.error("Notification has not been sent!");
+//        }
 
     }
 
@@ -126,8 +126,21 @@ public class L3VpnController {
     }
 
     private void handleRetract(Retract retractMsg) {
+        logger.info(retractMsg.toString());
         String vpnInstance = retractMsg.getNodeId();
+        logger.info("VPN ID = " + vpnInstance);
         // TODO: Need to handle retract action, check a proper behaviour in specification
+
+        if(mapStore.containsKey(vpnInstance)) {
+            DeviceId publisher = retractMsg.getFromDevice();
+            List<DeviceId> devicesToNotify = getListOfDevicesToNotify(vpnInstance, publisher);
+            pubSubService.sendEventNotification(devicesToNotify, retractMsg);
+            logger.info("Status of the VPN Store after Retract: " + mapStore.toString());
+        } else {
+            // TODO: notify error <item-not-found>
+        }
+
+
     }
 
     private void removeFromVpnIfDeviceExists(String vpnInstanceName, DeviceId deviceId) {
@@ -160,17 +173,14 @@ public class L3VpnController {
             switch(type) {
                 case NEW_SUBSCRIPTION:
                     SubscriptionInfo info = (SubscriptionInfo) event.subject();
-                    logger.info(info.toString());
                     handleNewSubscription(info);
                     break;
                 case DELETE_SUBSCRIPTION:
-                    SubscriptionInfo info1 = (SubscriptionInfo) event.subject();
-                    logger.info(info1.toString());
-                    handleDeleteSubscription(info1);
+                    SubscriptionInfo unsubscriptionInfo = (SubscriptionInfo) event.subject();
+                    handleDeleteSubscription(unsubscriptionInfo);
                     break;
                 case PUBLISH:
                     PublishInfo publishInfo = (PublishInfo) event.subject();
-                    logger.info(publishInfo.toString());
                     handlePublish(publishInfo);
                     break;
                 case RETRACT:

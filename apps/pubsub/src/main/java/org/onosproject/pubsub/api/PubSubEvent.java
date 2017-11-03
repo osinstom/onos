@@ -6,7 +6,6 @@ public class PubSubEvent extends AbstractEvent<PubSubEvent.Type, Object> {
 
     public enum Type {
         NEW_SUBSCRIPTION,
-        UPDATE_SUBSCRIPTION,
         DELETE_SUBSCRIPTION,
         PUBLISH,
         RETRACT

@@ -81,8 +81,10 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
         }
 
         @Override
-        public void retract(PublishInfo publishInfo) {
+        public void retract(Retract retract) {
             logger.info("RETRACT received");
+            final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.RETRACT, retract);
+            post(event);
         }
     }
 

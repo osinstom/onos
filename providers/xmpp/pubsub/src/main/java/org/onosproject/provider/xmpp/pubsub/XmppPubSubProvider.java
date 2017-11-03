@@ -2,12 +2,8 @@ package org.onosproject.provider.xmpp.pubsub;
 
 import org.apache.felix.scr.annotations.*;
 import org.dom4j.Element;
-import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.driver.DefaultDriverData;
-import org.onosproject.net.driver.DefaultDriverHandler;
-import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -16,7 +12,6 @@ import org.onosproject.xmpp.XmppController;
 import org.onosproject.xmpp.XmppDevice;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.XmppIqListener;
-import org.onosproject.xmpp.driver.XmppDeviceDriver;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -26,10 +21,7 @@ import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 
-import java.util.Set;
-
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.xmpp.XmppDeviceId.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
@@ -38,11 +30,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     private final Logger logger = getLogger(getClass());
 
     private static final String PROVIDER = "org.onosproject.provider.xmpp.pubsub";
-    private static final String APP_NAME = "org.onosproject.xmpp";
     private static final String XMPP = "xmpp";
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
@@ -100,18 +88,9 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
 
     @Override
     public void sendNotification(DeviceId device, Object message) {
-        try {
-            XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(device);
-            Packet notification = constructXmppNotificationPacket(xmppDeviceId, message);
-            sendXmppPacketToDevice(xmppDeviceId, notification);
-        } catch(IllegalArgumentException e) {
-            throw e;
-        }
-
-    }
-
-    private Packet constructXmppNotificationPacket(XmppDeviceId xmppDeviceId, Object info) {
-        return XmppPubSubUtils.constructXmppEventNotification(xmppDeviceId, info);
+        XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(device);
+        Packet notification = XmppPubSubUtils.constructXmppNotification(xmppDeviceId, message);
+        sendXmppPacketToDevice(xmppDeviceId, notification);
     }
 
     private void sendXmppPacketToDevice(XmppDeviceId xmppDeviceId, Packet packet) {
@@ -142,7 +121,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handleSubscribe(IQ iq) {
-        SubscriptionInfo subscriptionInfo = constructSubscriptionInfo(iq);
+        SubscriptionInfo subscriptionInfo = XmppPubSubUtils.parseSubscription(iq);
         notifyNewSubscriptionToCore(subscriptionInfo);
     }
 
@@ -151,7 +130,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handleUnsubscribe(IQ iq) {
-        SubscriptionInfo subscriptionInfo = constructSubscriptionInfo(iq);
+        SubscriptionInfo subscriptionInfo = XmppPubSubUtils.parseSubscription(iq);
         notifyUnsubscribeToCore(subscriptionInfo);
     }
 
@@ -160,7 +139,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handlePublish(IQ iq) {
-        PublishInfo publishInfo = constructPublishInfo(iq);
+        PublishInfo publishInfo = XmppPubSubUtils.parsePublish(iq);
         notifyPublishInfoToCore(publishInfo);
     }
 
@@ -169,34 +148,12 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handleRetract(IQ iq) {
-        PublishInfo publishInfo = constructPublishInfo(iq);
-        notifyRetractInfoToCore(publishInfo);
+        Retract retractInfo = XmppPubSubUtils.parseRetract(iq);
+        notifyRetractInfoToCore(retractInfo);
     }
 
-    private void notifyRetractInfoToCore(PublishInfo publishInfo) {
-        providerService.retract(publishInfo);
-    }
-
-    private SubscriptionInfo constructSubscriptionInfo(IQ iq) {
-        String device = iq.getElement().attribute("from").getValue();
-        logger.info("Device: " + device);
-        String nodeId = XmppPubSubUtils.getChildElement(iq.getChildElement())
-                .attribute("node").getValue();
-
-        SubscriptionInfo subscriptionInfo = new SubscriptionInfo(DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString())), nodeId);
-        return subscriptionInfo;
-    }
-
-    private PublishInfo constructPublishInfo(IQ iq) {
-        JID fromJid = iq.getFrom();
-        String domain = fromJid.getDomain();
-        PubSubInfoConstructor pubSubInfoConstructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
-
-        Element publish = (Element) iq.getChildElement().elements().get(0);
-        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString()));
-        PublishInfo publishInfo = pubSubInfoConstructor.parsePublishInfo(deviceId, publish);
-
-        return publishInfo;
+    private void notifyRetractInfoToCore(Retract retract) {
+        providerService.retract(retract);
     }
 
     private class InternalXmppIqListener implements XmppIqListener {

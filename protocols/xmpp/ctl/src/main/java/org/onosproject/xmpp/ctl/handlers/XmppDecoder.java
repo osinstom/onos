@@ -14,7 +14,10 @@ import io.netty.util.CharsetUtil;
 import org.dom4j.*;
 import org.onosproject.xmpp.XmppConstants;
 import org.onosproject.xmpp.XmppDeviceListener;
+import org.onosproject.xmpp.ctl.XmppValidator;
 import org.onosproject.xmpp.ctl.exception.UnsupportedStanzaTypeException;
+import org.onosproject.xmpp.ctl.exception.XmlRestrictionsException;
+import org.onosproject.xmpp.ctl.exception.XmppValidationException;
 import org.onosproject.xmpp.stream.StreamClose;
 import org.onosproject.xmpp.stream.StreamOpen;
 import org.slf4j.Logger;
@@ -36,29 +39,25 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
     private static final AsyncXMLInputFactory XML_INPUT_FACTORY = new InputFactoryImpl();
 
-    AsyncXMLStreamReader<AsyncByteArrayFeeder> streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
-    AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+    private AsyncXMLStreamReader<AsyncByteArrayFeeder> streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
+    private AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
+    private XmppValidator validator = new XmppValidator();
 
     Element parent = null;
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
         try {
+            logger.info("Decoding XMPP data.. ");
 
             byte[] buffer = new byte[in.readableBytes()];
-            logger.info("Decoding.. {}", new String(buffer, CharsetUtil.UTF_8));
-
-            logger.info("ByteBuf, WriteIdx: {}, ReaderIdx: {}", in.writerIndex(), in.readerIndex());
-
             in.readBytes(buffer);
-            logger.info("ByteBuf, WriteIdx: {}, ReaderIdx: {}", in.writerIndex(), in.readerIndex());
 
             try {
                 streamFeeder.feedInput(buffer, 0, buffer.length);
             } catch (XMLStreamException exception) {
                 in.skipBytes(in.readableBytes());
                 logger.info("Bytes skipped");
-                throw exception;
             }
 
             DocumentFactory df = DocumentFactory.getInstance();
@@ -66,14 +65,10 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
             while (!streamFeeder.needMoreInput()) {
                 int type = streamReader.next();
-                logger.info("Handling TYPE {}", type);
-                if(parent!=null)
-                    logger.info("Actual parent {}", parent.asXML());
                 switch (type) {
                     case AsyncXMLStreamReader.EVENT_INCOMPLETE:
                         break;
                     case XMLStreamConstants.START_ELEMENT:
-//                    logger.info("Start element");
                         QName qname = (streamReader.getPrefix() == null) ?
                                 df.createQName(streamReader.getLocalName(), streamReader.getNamespaceURI()) :
                                 df.createQName(streamReader.getLocalName(), streamReader.getPrefix(), streamReader.getNamespaceURI());
@@ -115,8 +110,10 @@ public class XmppDecoder extends ByteToMessageDecoder {
                                 parent = parent.getParent();
                             else {
                                 // parent is null, so document parsing is finished, Decoder can return XMPP packet
-                                out.add(recognizeAndReturnXmppPacket(parent));
+                                Packet packet = recognizeAndReturnXmppPacket(parent);
+                                validate(packet);
                                 parent = null;
+                                out.add(packet);
                             }
                         }
                         break;
@@ -126,15 +123,45 @@ public class XmppDecoder extends ByteToMessageDecoder {
                                 parent.addText(streamReader.getText());
                         }
                         break;
+//                    case XMLStreamConstants.COMMENT:
+//                    case XMLStreamConstants.ENTITY_REFERENCE:
+//                    case XMLStreamConstants.DTD:
+//                    case XMLStreamConstants.PROCESSING_INSTRUCTION:
+//                        /**
+//                         * From RFC 6120:
+//                         * 11.1 XML Restrictions
+//                         *  As a result, the following features of XML are prohibited in XMPP:
+//
+//                         comments (as defined in Section 2.5 of [XML])
+//                         processing instructions (Section 2.6 therein)
+//                         internal or external DTD subsets (Section 2.8 therein)
+//                         internal or external entity references (Section 4.2 therein) with the exception of the predefined entities (Section 4.6 therein)
+//
+//                         */
+////                        throw new XmlRestrictionsException();
                 }
             }
         } catch (Exception e) {
+            parent = null;
             throw e;
         }
 
     }
 
-    private Packet recognizeAndReturnXmppPacket(Element root) throws UnsupportedStanzaTypeException {
+    private void validate(Packet packet) throws UnsupportedStanzaTypeException, XmppValidationException {
+        Element root = packet.getElement();
+        if(root.getName().equals(XmppConstants.IQ_QNAME)) {
+            validator.validateIQ((IQ) packet);
+        } else if (root.getName().equals(XmppConstants.MESSAGE_QNAME)) {
+            validator.validateMessage((Message) packet);
+        } else if (root.getName().equals(XmppConstants.PRESENCE_QNAME)) {
+            validator.validatePresence((Presence) packet);
+        } else {
+            throw new UnsupportedStanzaTypeException("Unrecognized XMPP Packet");
+        }
+    }
+
+    private Packet recognizeAndReturnXmppPacket(Element root) throws UnsupportedStanzaTypeException, IllegalArgumentException {
         checkNotNull(root);
         Packet packet = null;
         if(root.getName().equals(XmppConstants.IQ_QNAME)) {

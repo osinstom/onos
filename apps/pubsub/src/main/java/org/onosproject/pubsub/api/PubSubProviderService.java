@@ -11,6 +11,6 @@ public interface PubSubProviderService extends ProviderService<PubSubProvider> {
 
     void publish(PublishInfo publishInfo);
 
-    void retract(PublishInfo publishInfo);
+    void retract(Retract retract);
 
 }
