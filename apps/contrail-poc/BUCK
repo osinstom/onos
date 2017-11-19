@@ -2,6 +2,8 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:onos-yang-model',
     '//lib:onos-yang-runtime',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
     '//core/api:onos-api',
     '//apps/pubsub:onos-apps-pubsub',
     '//apps/config:onos-apps-config',

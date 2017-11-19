@@ -18,4 +18,12 @@ public class PublishInfo extends PubSubInfo {
         this.payload = payload;
     }
 
+    @Override
+    public String toString() {
+        return "PublishInfo{" +
+                "fromDevice=" + fromDevice +
+                ", payload=" + payload +
+                ", nodeId='" + nodeId + '\'' +
+                '}';
+    }
 }

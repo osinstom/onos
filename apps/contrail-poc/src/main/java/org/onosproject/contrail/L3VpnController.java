@@ -43,7 +43,7 @@ public class L3VpnController {
     private DeviceListener deviceListener = new InternalDeviceListener();
 
     private ConcurrentMap<String, List<DeviceId>> vpnDevicesMap = Maps.newConcurrentMap();
-    private ConcurrentMap<DeviceId, PublishInfo> deviceBgpInfoMap = Maps.newConcurrentMap();
+    private ConcurrentMap<PublishInfo, DeviceId> bgpInfoMap = Maps.newConcurrentMap();
 
     @Activate
     public void activate() {
@@ -59,6 +59,15 @@ public class L3VpnController {
         deviceService.removeListener(deviceListener);
     }
 
+    public ConcurrentMap<String, List<DeviceId>> getSubscriptions() {
+        return vpnDevicesMap;
+    }
+
+    public ConcurrentMap<PublishInfo, DeviceId> getBgpInfoMap() {
+        return bgpInfoMap;
+    }
+
+
     private void handlePublish(PublishInfo publishInfo) {
         String vpnInstance = publishInfo.getNodeId();
         if(vpnDevicesMap.containsKey(vpnInstance)) {
@@ -73,7 +82,7 @@ public class L3VpnController {
     }
 
     private void storeBgpInfo(DeviceId publisher, PublishInfo publishInfo) {
-        deviceBgpInfoMap.putIfAbsent(publisher, publishInfo);
+        bgpInfoMap.putIfAbsent(publishInfo, publisher);
     }
 
     /**
@@ -95,9 +104,14 @@ public class L3VpnController {
         String vpnInstance = publishInfo.getNodeId();
         List<DeviceId> vpnMembers = getVpnMembersExceptPublisher(vpnInstance, publisher);
         for(DeviceId member : vpnMembers) {
-            PublishInfo info = deviceBgpInfoMap.get(member);
-            if(info != null) {
-                pubSubService.sendEventNotification(publisher, info);
+            PublishInfo bgpInfo = null;
+            for (PublishInfo info : bgpInfoMap.keySet()) {
+                if (bgpInfoMap.get(info).equals(member)) {
+                    bgpInfo = info;
+                }
+            }
+            if(bgpInfo != null) {
+                pubSubService.sendEventNotification(publisher, bgpInfo);
             }
         }
     }
