@@ -117,6 +117,16 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
         // TODO: Implement error handling
     }
 
+    @Override
+    public void sendError(PacketError.Condition condition) {
+        PacketError error = new PacketError(condition);
+        Packet packet = new IQ();
+        packet.setTo(this.deviceId.getJid());
+        packet.setFrom(new JID(XmppConstants.SERVER_JID));
+        packet.setError(error);
+        this.writeToChannel(packet);
+    }
+
     private void writeStreamOpen(StreamOpen streamOpenFromDevice) {
 
         Element element = createReverseStreamOpenXmlElement(streamOpenFromDevice);

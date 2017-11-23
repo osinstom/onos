@@ -45,11 +45,14 @@ public class L3VpnController {
     private ConcurrentMap<String, List<DeviceId>> vpnDevicesMap = Maps.newConcurrentMap();
     private ConcurrentMap<PublishInfo, DeviceId> bgpInfoMap = Maps.newConcurrentMap();
 
+    private String[] vpns = { "blue", "red" };
+
     @Activate
     public void activate() {
         logger.info("Started");
         pubSubService.addListener(listener);
         deviceService.addListener(deviceListener);
+        initializeVpns();
     }
 
     @Deactivate
@@ -65,6 +68,13 @@ public class L3VpnController {
 
     public ConcurrentMap<PublishInfo, DeviceId> getBgpInfoMap() {
         return bgpInfoMap;
+    }
+
+    private void initializeVpns() {
+        for(String vpn : vpns) {
+            List<DeviceId> devices = new ArrayList<DeviceId>();
+            vpnDevicesMap.put(vpn, devices);
+        }
     }
 
 
@@ -138,20 +148,9 @@ public class L3VpnController {
             if(!vpnDevices.contains(device))
                 vpnDevices.add(device);
         } else {
-            List<DeviceId> devices = new ArrayList<DeviceId>();
-            devices.add(device);
-            vpnDevicesMap.put(vpnInstanceName, devices);
+            pubSubService.sendEventNotification(info.getFromDevice(), new PubSubError(PubSubError.ErrorType.ITEM_NOT_FOUND));
         }
         logger.info("NEW_SUBSCRIPTION handled. Status of subscrptions: /n {}", vpnDevicesMap.toString());
-
-//        Element config = DocumentFactory.getInstance().createElement("config");
-//
-//        try {
-//            pubSubService.sendEventNotification(device, config);
-//        } catch(IllegalArgumentException e) {
-//            logger.error("Notification has not been sent!");
-//        }
-
     }
 
     private void handleDeleteSubscription(SubscriptionInfo info) {

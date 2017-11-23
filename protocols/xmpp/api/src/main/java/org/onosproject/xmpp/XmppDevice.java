@@ -8,7 +8,7 @@ import org.onosproject.xmpp.driver.XmppDeviceManager;
 import org.onosproject.xmpp.stream.StreamOpen;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
-
+import org.xmpp.packet.PacketError;
 
 
 /**
@@ -49,4 +49,6 @@ public interface XmppDevice {
     void openStream(StreamOpen streamOpen);
 
     void handleStreamError(StreamError streamError);
+
+    void sendError(PacketError.Condition condition);
 }

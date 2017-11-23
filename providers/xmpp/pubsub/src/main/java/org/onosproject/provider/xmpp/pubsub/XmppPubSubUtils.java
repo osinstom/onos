@@ -6,17 +6,11 @@ import org.dom4j.Namespace;
 import org.dom4j.QName;
 import org.dom4j.util.UserDataElement;
 import org.onosproject.net.DeviceId;
-import org.onosproject.pubsub.api.PubSubInfoConstructor;
-import org.onosproject.pubsub.api.PublishInfo;
-import org.onosproject.pubsub.api.Retract;
-import org.onosproject.pubsub.api.SubscriptionInfo;
+import org.onosproject.pubsub.api.*;
 import org.onosproject.xmpp.XmppDevice;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.slf4j.Logger;
-import org.xmpp.packet.IQ;
-import org.xmpp.packet.JID;
-import org.xmpp.packet.Message;
-import org.xmpp.packet.Packet;
+import org.xmpp.packet.*;
 
 import javax.naming.Name;
 import java.util.IllegalFormatException;
@@ -106,6 +100,13 @@ public class XmppPubSubUtils {
         // event element
         message.getElement().elements().add(event);
         return message;
+    }
+
+    public static PacketError.Condition getConditionForPubSubError(PubSubError error) {
+        if(error.getErrorType().equals(PubSubError.ErrorType.ITEM_NOT_FOUND)) {
+            return PacketError.Condition.item_not_found;
+        }
+        return null;
     }
 
     private static Packet constructNotification(XmppDeviceId xmppDeviceId, Object message) {

@@ -12,6 +12,7 @@ import org.onosproject.xmpp.XmppController;
 import org.onosproject.xmpp.XmppDevice;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.XmppIqListener;
+import org.onosproject.xmpp.stream.StreamError;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -20,6 +21,7 @@ import java.util.*;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
+import org.xmpp.packet.PacketError;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -89,8 +91,19 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     @Override
     public void sendNotification(DeviceId device, Object message) {
         XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(device);
-        Packet notification = XmppPubSubUtils.constructXmppNotification(xmppDeviceId, message);
-        sendXmppPacketToDevice(xmppDeviceId, notification);
+        if(message instanceof PubSubError) {
+            sendErrorNotification(xmppDeviceId,(PubSubError)message);
+        } else {
+            Packet notification = XmppPubSubUtils.constructXmppNotification(xmppDeviceId, message);
+            sendXmppPacketToDevice(xmppDeviceId, notification);
+        }
+    }
+
+    private void sendErrorNotification(XmppDeviceId xmppDeviceId, PubSubError error) {
+        XmppDevice xmppDevice = getXmppDevice(xmppDeviceId);
+        PacketError.Condition condition = XmppPubSubUtils.getConditionForPubSubError(error);
+        if(condition!=null)
+            xmppDevice.sendError(condition);
     }
 
     private void sendXmppPacketToDevice(XmppDeviceId xmppDeviceId, Packet packet) {

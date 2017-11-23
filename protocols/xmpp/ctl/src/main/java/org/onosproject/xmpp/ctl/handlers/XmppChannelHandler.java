@@ -61,6 +61,7 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
             @Override
             void processUpstreamXmppPacket(XmppChannelHandler handler, ChannelHandlerContext ctx,  Object msg) {
                 // ignore
+                handler.logger.info("XMPP Packet in state IDLE received. Packet ignored..");
             }
         },
 
