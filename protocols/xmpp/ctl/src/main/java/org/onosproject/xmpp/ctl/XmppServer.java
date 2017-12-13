@@ -98,6 +98,7 @@ public class XmppServer {
     private void configureBootstrap(ServerBootstrap bootstrap) {
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        bootstrap.option(ChannelOption.SO_RCVBUF, 2048);
     }
 
     /**

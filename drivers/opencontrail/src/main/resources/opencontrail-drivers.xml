@@ -15,7 +15,7 @@
         ~ limitations under the License.
         -->
 <drivers>
-    <driver name="opencontrail"
+    <driver name="l3vpn"
             manufacturer="vnsw.contrailsystems.com" hwVersion="XMPP Device" swVersion=".*">
         <behaviour api="org.onosproject.pubsub.api.PubSubInfoConstructor"
                    impl="org.onosproject.drivers.opencontrail.OpenContrailPubSubInfoConstructor"/>

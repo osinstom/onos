@@ -1,7 +1,7 @@
 package org.onosproject.xmpp;
 
 /**
- * Created by autonet on 04.09.17.
+ * Allows for providers interested in XMPP device events to be notified.
  */
 public interface XmppDeviceListener {
 

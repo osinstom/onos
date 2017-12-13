@@ -61,28 +61,24 @@ public class PubSubManager extends AbstractListenerProviderRegistry<PubSubEvent,
 
         @Override
         public void subscribe(SubscriptionInfo subscriptionInfo) {
-            logger.info("SUBSCRIBE received");
             final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.NEW_SUBSCRIPTION, subscriptionInfo);
             post(event);
         }
 
         @Override
         public void unsubscribe(SubscriptionInfo subscriptionInfo) {
-            logger.info("UNSUBSCRIBE received");
             final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.DELETE_SUBSCRIPTION, subscriptionInfo);
             post(event);
         }
 
         @Override
         public void publish(PublishInfo publishInfo) {
-            logger.info("PUBLISH received");
             final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.PUBLISH, publishInfo);
             post(event);
         }
 
         @Override
         public void retract(Retract retract) {
-            logger.info("RETRACT received");
             final PubSubEvent event = new PubSubEvent(PubSubEvent.Type.RETRACT, retract);
             post(event);
         }

@@ -19,7 +19,6 @@ public class StreamOpen implements StreamEvent {
 
     public static final String QNAME = "stream";
 
-    private static DocumentFactory docFactory = DocumentFactory.getInstance();
     private Element element;
 
     public StreamOpen(Element element) {

@@ -50,5 +50,7 @@ public interface XmppDevice {
 
     void handleStreamError(StreamError streamError);
 
+    void sendStreamError(StreamError.Condition streamErrorCondition);
+
     void sendError(PacketError.Condition condition);
 }

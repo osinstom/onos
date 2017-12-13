@@ -1,8 +1,6 @@
 package org.onosproject.provider.xmpp.pubsub;
 
 import org.apache.felix.scr.annotations.*;
-import org.dom4j.Element;
-import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
@@ -12,14 +10,12 @@ import org.onosproject.xmpp.XmppController;
 import org.onosproject.xmpp.XmppDevice;
 import org.onosproject.xmpp.XmppDeviceId;
 import org.onosproject.xmpp.XmppIqListener;
-import org.onosproject.xmpp.stream.StreamError;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.*;
 
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
@@ -152,8 +148,14 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handlePublish(IQ iq) {
-        PublishInfo publishInfo = XmppPubSubUtils.parsePublish(iq);
-        notifyPublishInfoToCore(publishInfo);
+        try {
+            PublishInfo publishInfo = XmppPubSubUtils.parsePublish(iq);
+            notifyPublishInfoToCore(publishInfo);
+        } catch (Exception e) {
+            DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString()));
+            XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(deviceId);
+            sendErrorNotification(xmppDeviceId, new PubSubError(PubSubError.ErrorType.INVALID_PAYLOAD));
+        }
     }
 
     private void notifyPublishInfoToCore(PublishInfo publishInfo) {
@@ -172,7 +174,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     private class InternalXmppIqListener implements XmppIqListener {
 
         @Override
-        public void handleEvent(IQ iqEvent) {
+        public void handleIqStanza(IQ iqEvent) {
             if(XmppPubSubUtils.isPubSub(iqEvent)) {
                 XmppPubSubUtils.Method method = XmppPubSubUtils.getMethod(iqEvent);
                 handlePubSubOperation(method, iqEvent);

@@ -14,5 +14,4 @@ public class StreamError extends org.xmpp.packet.StreamError implements StreamEv
         return super.toXML();
     }
 
-
 }

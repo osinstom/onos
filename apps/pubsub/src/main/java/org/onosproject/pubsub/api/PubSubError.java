@@ -20,7 +20,9 @@ public class PubSubError {
     }
 
     public static enum ErrorType {
-        ITEM_NOT_FOUND
+        ITEM_NOT_FOUND,
+        NOT_SUBSCRIBED,
+        INVALID_PAYLOAD
     }
 
 }

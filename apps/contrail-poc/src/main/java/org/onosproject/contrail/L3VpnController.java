@@ -6,9 +6,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.pubsub.api.*;
-import org.onosproject.l3vpn.netl3vpn.NetL3VpnStore;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -32,12 +30,6 @@ public class L3VpnController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetL3VpnStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
 
     private PubSubListener listener = new InternalPubSubListener();
     private DeviceListener deviceListener = new InternalDeviceListener();
@@ -87,7 +79,7 @@ public class L3VpnController {
             notifyPublisherAboutVpnMembers(publisher, publishInfo);
             logger.info("Status of the VPN Store after Publish: " + vpnDevicesMap.toString());
         } else {
-            // TODO: notify error <item-not-found>
+            pubSubService.sendEventNotification(publishInfo.getFromDevice(), new PubSubError(PubSubError.ErrorType.ITEM_NOT_FOUND));
         }
     }
 
@@ -179,11 +171,16 @@ public class L3VpnController {
 
     private void removeFromVpnIfDeviceExists(String vpnInstanceName, DeviceId deviceId) {
         List<DeviceId> vpnDevices = vpnDevicesMap.get(vpnInstanceName);
-        checkNotNull(vpnDevices);
+        if(vpnDevices==null) {
+            pubSubService.sendEventNotification(deviceId, new PubSubError(PubSubError.ErrorType.ITEM_NOT_FOUND));
+            return;
+        }
         if(vpnDevices.contains(deviceId)) {
             vpnDevices.remove(deviceId);
             logger.info("Device '{}' has been removed from VPN '{}'. Status of the VPN store: {}",
                     deviceId, vpnInstanceName, vpnDevicesMap.toString());
+        } else {
+            pubSubService.sendEventNotification(deviceId, new PubSubError(PubSubError.ErrorType.NOT_SUBSCRIBED));
         }
     }
 

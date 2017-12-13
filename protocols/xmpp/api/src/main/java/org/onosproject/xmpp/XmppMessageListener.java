@@ -2,11 +2,15 @@ package org.onosproject.xmpp;
 
 import org.xmpp.packet.Message;
 
+
+/**
+ * Allows for providers interested in XMPP Message stanzas to be notified.
+ */
 public interface XmppMessageListener {
 
     /**
-     * Invoke if new event from XMPP device occurs.
+     * Invoke if new Message stanza from XMPP device received.
      */
-    void handleEvent(Message msgEvent);
+    void handleMessageStanza(Message message);
 
 }

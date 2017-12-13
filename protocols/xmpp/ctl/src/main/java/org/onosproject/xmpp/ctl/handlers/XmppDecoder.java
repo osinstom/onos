@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.util.CharsetUtil;
 import org.dom4j.*;
 import org.onosproject.xmpp.XmppConstants;
@@ -42,12 +43,13 @@ public class XmppDecoder extends ByteToMessageDecoder {
     private AsyncXMLStreamReader<AsyncByteArrayFeeder> streamReader = XML_INPUT_FACTORY.createAsyncForByteArray();
     private AsyncByteArrayFeeder streamFeeder = (AsyncByteArrayFeeder) streamReader.getInputFeeder();
     private XmppValidator validator = new XmppValidator();
-
-    Element parent = null;
+    private DocumentFactory df = DocumentFactory.getInstance();
+    private Element parent;
 
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         try {
+
             logger.info("Decoding XMPP data.. ");
 
             byte[] buffer = new byte[in.readableBytes()];
@@ -56,11 +58,11 @@ public class XmppDecoder extends ByteToMessageDecoder {
             try {
                 streamFeeder.feedInput(buffer, 0, buffer.length);
             } catch (XMLStreamException exception) {
+                logger.info(exception.getMessage());
                 in.skipBytes(in.readableBytes());
                 logger.info("Bytes skipped");
             }
 
-            DocumentFactory df = DocumentFactory.getInstance();
             Document document = df.createDocument();
 
             while (!streamFeeder.needMoreInput()) {
@@ -78,7 +80,6 @@ public class XmppDecoder extends ByteToMessageDecoder {
 
                         // add all relevant XML namespaces to Element
                         for (int x = 0; x < streamReader.getNamespaceCount(); x++) {
-                            logger.info(streamReader.getNamespacePrefix(x) + " " + streamReader.getNamespaceURI(x));
                             newElement.addNamespace(streamReader.getNamespacePrefix(x), streamReader.getNamespaceURI(x));
                         }
                         // add all attributes to Element
@@ -87,7 +88,10 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         }
 
                         if(newElement.getName().equals(XmppConstants.STREAM_QNAME)) {
-                            out.add(new StreamOpen(newElement));
+                            StreamOpen streamOpen = new StreamOpen(newElement);
+                            validator.validate(streamOpen);
+                            out.add(streamOpen);
+                            this.reset();
                             return;
                         }
 
@@ -103,6 +107,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                         if(streamReader.getLocalName().equals(XmppConstants.STREAM_QNAME)) {
                             // return Stream Error
                             out.add(new StreamClose());
+                            this.reset();
                             return;
                         }
                         if (parent != null) {
@@ -112,7 +117,7 @@ public class XmppDecoder extends ByteToMessageDecoder {
                                 // parent is null, so document parsing is finished, Decoder can return XMPP packet
                                 Packet packet = recognizeAndReturnXmppPacket(parent);
                                 validate(packet);
-                                parent = null;
+                                this.reset();
                                 out.add(packet);
                             }
                         }
@@ -142,23 +147,19 @@ public class XmppDecoder extends ByteToMessageDecoder {
                 }
             }
         } catch (Exception e) {
-            parent = null;
+            this.reset();
             throw e;
         }
 
     }
 
+    private void reset() throws XMLStreamException {
+//        streamReader.close();
+        this.parent = null;
+    }
+
     private void validate(Packet packet) throws UnsupportedStanzaTypeException, XmppValidationException {
-        Element root = packet.getElement();
-        if(root.getName().equals(XmppConstants.IQ_QNAME)) {
-            validator.validateIQ((IQ) packet);
-        } else if (root.getName().equals(XmppConstants.MESSAGE_QNAME)) {
-            validator.validateMessage((Message) packet);
-        } else if (root.getName().equals(XmppConstants.PRESENCE_QNAME)) {
-            validator.validatePresence((Presence) packet);
-        } else {
-            throw new UnsupportedStanzaTypeException("Unrecognized XMPP Packet");
-        }
+        validator.validate(packet);
     }
 
     private Packet recognizeAndReturnXmppPacket(Element root) throws UnsupportedStanzaTypeException, IllegalArgumentException {

@@ -6,8 +6,7 @@ package org.onosproject.xmpp;
 public interface XmppController {
 
     XmppDevice getDevice(XmppDeviceId xmppDeviceId);
-
-
+    
     void addXmppDeviceListener(XmppDeviceListener deviceListener);
 
     void removeXmppDeviceListener(XmppDeviceListener deviceListener);

@@ -105,6 +105,10 @@ public class XmppPubSubUtils {
     public static PacketError.Condition getConditionForPubSubError(PubSubError error) {
         if(error.getErrorType().equals(PubSubError.ErrorType.ITEM_NOT_FOUND)) {
             return PacketError.Condition.item_not_found;
+        } else if (error.getErrorType().equals(PubSubError.ErrorType.NOT_SUBSCRIBED)) {
+            return PacketError.Condition.unexpected_request;
+        } else if (error.getErrorType().equals(PubSubError.ErrorType.INVALID_PAYLOAD)) {
+            return PacketError.Condition.bad_request;
         }
         return null;
     }

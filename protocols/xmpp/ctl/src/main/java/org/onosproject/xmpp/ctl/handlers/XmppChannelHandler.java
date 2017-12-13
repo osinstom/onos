@@ -27,8 +27,6 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private XmppStreamHelper streamHelper = new XmppStreamHelper();
-
     protected ExecutorService executorService =
             Executors.newFixedThreadPool(32, groupedThreads("onos/xmpp", "message-stats-%d", logger));
 
@@ -137,21 +135,21 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
 
         void processUpstreamXmppEvent(XmppChannelHandler handler,  ChannelHandlerContext ctx,  Object msg) {
             XmppEvent event = XmppEvent.valueOf(msg.getClass().getSimpleName());
-            handler.logger.info("Xmpp event {} received in STATE={} for device: {}", event, handler.state, ctx.channel().remoteAddress());
+            handler.logger.info("XMPP event {} received in STATE={} for device: {}", event, handler.state, ctx.channel().remoteAddress());
             switch(event) {
                 case StreamOpen:
-                    processStreamOpen(handler, ctx, (StreamOpen) msg);
+                    handler.state.processStreamOpen(handler, ctx, (StreamOpen) msg);
                     break;
                 case StreamClose:
-                    processStreamClose(handler, ctx, (StreamClose) msg);
+                    handler.state.processStreamClose(handler, ctx, (StreamClose) msg);
                     break;
                 case StreamError:
-                    processStreamError(ctx, (StreamError) msg);
+                    handler.state.processStreamError(ctx, (StreamError) msg);
                     break;
                 case IQ:
                 case Message:
                 case Presence:
-                    processUpstreamXmppPacket(handler, ctx, msg);
+                    handler.state.processUpstreamXmppPacket(handler, ctx, msg);
                     break;
             }
         }
@@ -177,29 +175,31 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         logger.info("Exception caught: {}", cause.getMessage());
-        logger.info(cause.getCause().getMessage());
-        logger.info(cause.getStackTrace().toString());
+        XmppDevice device = XmppDeviceFactory.getInstance().getXmppDeviceInstanceBySocketAddress((InetSocketAddress)ctx.channel().remoteAddress());
+        StreamError.Condition condition = getStreamErrorCondition(cause.getCause());
+        device.sendStreamError(condition);
+        device.closeStream();
+    }
 
+    private StreamError.Condition getStreamErrorCondition(Throwable cause) {
         //TODO: add error handle mechanisms for each cases
-        if(cause.getCause() instanceof UnsupportedStanzaTypeException)
-            streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.unsupported_stanza_type);
-        else if(cause.getCause() instanceof WFCException) {
-            streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.bad_format);
+        if(cause instanceof UnsupportedStanzaTypeException)
+            return StreamError.Condition.unsupported_stanza_type;
+        else if(cause instanceof WFCException) {
+            return StreamError.Condition.bad_format;
         }
-        else if(cause.getCause() instanceof XmppValidationException) {
-            streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.bad_format);
+        else if(cause instanceof XmppValidationException) {
+            return StreamError.Condition.bad_format;
         }
         else {
-            streamHelper.sendStreamError(ctx.channel(), StreamError.Condition.internal_server_error);
+            return StreamError.Condition.internal_server_error;
         }
-        XmppDevice device = XmppDeviceFactory.getInstance().getXmppDeviceInstanceBySocketAddress((InetSocketAddress)ctx.channel().remoteAddress());
-        device.closeStream();
     }
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        logger.info("Writing packet... State " + this.state.toString());
         this.state.processDownstreamXmppEvent(this, ctx,  msg);
+        logger.info("Writing packet... Current State " + this.state.toString());
     }
 
     /**
@@ -219,7 +219,7 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
 
         @Override
         public void run() {
-            logger.info("RECEIVED: {}", packet.toXML());
+            logger.info("RECEIVED:\n{}", packet.toXML());
             JID jid = packet.getFrom();
             XmppDevice device = XmppDeviceFactory.getInstance().getXmppDeviceInstanceByJid(jid);
             device.handlePacket(packet);

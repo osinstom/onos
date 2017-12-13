@@ -1,15 +1,9 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//lib:onos-yang-model',
-    '//lib:onos-yang-runtime',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//core/api:onos-api',
     '//apps/pubsub:onos-apps-pubsub',
-    '//apps/config:onos-apps-config',
-    '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
-    '//apps/yang:onos-apps-yang',
-    '//apps/l3vpn/netl3vpn:onos-apps-l3vpn-netl3vpn',
 ]
 
 osgi_jar_with_tests(
@@ -18,10 +12,6 @@ osgi_jar_with_tests(
 
 BUNDLES = [
     '//apps/pubsub:onos-apps-pubsub',
-    '//apps/config:onos-apps-config',
-    '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
-    '//apps/yang:onos-apps-yang',
-    '//apps/l3vpn/netl3vpn:onos-apps-l3vpn-netl3vpn',
     '//apps/contrail-poc:onos-apps-contrail-poc',
 ]
 
@@ -32,5 +22,4 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'OpenContrail Networking Proof of Concept application.',
-    required_apps = [ 'org.onosproject.l3vpn', 'org.onosproject.yang' ]
 )

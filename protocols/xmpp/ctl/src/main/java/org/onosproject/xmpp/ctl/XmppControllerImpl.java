@@ -73,7 +73,7 @@ public class XmppControllerImpl implements XmppController {
     @Activate
     public void activate(ComponentContext context) {
         logger.info("XmppControllerImpl started.");
-        coreService.registerApplication(APP_ID);
+        coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
         deviceFactory.init(manager, driverService);
         xmppServer.setConfiguration(context.getProperties());
@@ -82,18 +82,20 @@ public class XmppControllerImpl implements XmppController {
 
     @Deactivate
     public void deactivate() {
-        xmppServer.stop();
-        deviceFactory.cleanManager();
-        connectedDevices.values().forEach(XmppDevice::disconnectDevice);
-        connectedDevices.clear();
+        cleanup();
         cfgService.unregisterProperties(getClass(), false);
         logger.info("Stopped");
     }
 
+    private void cleanup() {
+        xmppServer.stop();
+        deviceFactory.cleanManager();
+        connectedDevices.values().forEach(XmppDevice::disconnectDevice);
+        connectedDevices.clear();
+    }
 
     @Override
     public XmppDevice getDevice(XmppDeviceId xmppDeviceId) {
-        logger.info(connectedDevices.toString());
         return connectedDevices.get(xmppDeviceId);
     }
 
@@ -173,13 +175,13 @@ public class XmppControllerImpl implements XmppController {
         public void processUpstreamEvent(XmppDeviceId deviceId, Packet packet) {
             if(packet instanceof IQ)
                 for(XmppIqListener iqListener: xmppIqListeners)
-                    iqListener.handleEvent((IQ)packet);
+                    iqListener.handleIqStanza((IQ)packet);
             if(packet instanceof Message)
                 for(XmppMessageListener messageListener : xmppMessageListeners)
-                    messageListener.handleEvent((Message) packet);
+                    messageListener.handleMessageStanza((Message) packet);
             if(packet instanceof Presence)
                 for(XmppPresenceListener presenceListener : xmppPresenceListeners)
-                    presenceListener.handleEvent((Presence) packet);
+                    presenceListener.handlePresenceStanza((Presence) packet);
         }
 
         @Override

@@ -118,6 +118,13 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     }
 
     @Override
+    public void sendStreamError(StreamError.Condition condition) {
+        logger.info("Sending error");
+        StreamError error = new StreamError(condition);
+        this.writeToChannel(error);
+    }
+
+    @Override
     public void sendError(PacketError.Condition condition) {
         PacketError error = new PacketError(condition);
         Packet packet = new IQ();

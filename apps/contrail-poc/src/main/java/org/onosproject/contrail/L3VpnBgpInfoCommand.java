@@ -1,5 +1,6 @@
 package org.onosproject.contrail;
 
+import org.dom4j.Element;
 import org.onosproject.cli.AbstractShellCommand;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Argument;
@@ -30,10 +31,10 @@ public class L3VpnBgpInfoCommand extends AbstractShellCommand {
         System.out.println("-----------------------------------------------------------------------------------------");
         System.out.println("BGP informations \t\t\t\t\t\t NETWORK: " + vpnInstance);
         for(DeviceId deviceId : devices) {
-
             for (PublishInfo info : bgpInfoMap.keySet()) {
                 if (bgpInfoMap.get(info).equals(deviceId)) {
-                    System.out.println(info.toString());
+                    Object payload = info.getPayload();
+                    System.out.println("DEVICE=" + deviceId.toString() + "\n" + payload.toString());
                 }
             }
         }

@@ -28,7 +28,9 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
 
         PublishInfo info = new PublishInfo(deviceId, vpnInstanceName);
         Element item = ((Element) pubsubPayload.elements().get(0)).createCopy();
-        info.setPayload(item);
+        BgpVpnPubSubEntry entry = getBgpVpnPubSubEntry(item);
+
+        info.setPayload(entry);
 
         return info;
     }
@@ -76,7 +78,9 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         return element.attribute("node").getValue();
     }
 
-    private BgpVpnPubSubEntry getBgpVpnPubSubEntry(Element entry) {
+    private BgpVpnPubSubEntry getBgpVpnPubSubEntry(Element item) {
+        Element entry = ((Element) item.elements().get(0)).createCopy();
+
         Element nlri = entry.element("nlri");
         String nlriAf = nlri.attributeValue("af");
         String nlriAddress = nlri.attributeValue("address") != null ? nlri.attributeValue("address") : nlri.getText();

@@ -1,9 +1,7 @@
 package org.onosproject.xmpp.ctl;
 
 
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import org.onosproject.xmpp.ctl.handlers.XmppChannelHandler;
@@ -21,7 +19,6 @@ public class XmppChannelInitializer extends ChannelInitializer<SocketChannel> {
     protected static final Logger logger = LoggerFactory.getLogger(XmppChannelInitializer.class);
 
     protected XmppServer xmppServer;
-
 
     public XmppChannelInitializer(XmppServer server) {
         this.xmppServer = server;

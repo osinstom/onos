@@ -51,7 +51,6 @@ public class PubSubConstructorFactory {
     }
 
     private Driver getDriverByJidDomain(String domain) {
-        logger.info("Domain: " + domain);
         Driver driver;
         try {
             driver = driverService.getDriver(domain, HARDWARE_VERSION, SOFTWARE_VERSION);

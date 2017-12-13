@@ -150,13 +150,13 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
 
         @Override
         public void deviceConnected(XmppDeviceId deviceId) {
-            logger.info("NOTIFICATION: device connected");
+            logger.info("NOTIFICATION: device {} connected", deviceId);
             connectDevice(deviceId);
         }
 
         @Override
         public void deviceDisconnected(XmppDeviceId deviceId) {
-            logger.info("NOTIFICATION: device disconnected");
+            logger.info("NOTIFICATION: device {} disconnected", deviceId);
             disconnectDevice(deviceId);
         }
     }
