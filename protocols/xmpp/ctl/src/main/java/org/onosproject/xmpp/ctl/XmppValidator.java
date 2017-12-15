@@ -14,12 +14,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class XmppValidator {
 
-    public void validate(StreamOpen stream) throws XmppValidationException {
+    public void validateStream(StreamOpen stream) throws XmppValidationException {
         try {
-            JID jid = stream.getFromJID();
+//            JID jid = stream.getFromJID();
+//            validateJID(jid);
+            String jid = stream.getElement().attribute("from").getValue();
             validateJID(jid);
         } catch (Exception e) {
-            throw new XmppValidationException();
+            throw new XmppValidationException(true);
         }
     }
 
@@ -41,7 +43,7 @@ public class XmppValidator {
         try {
 
         } catch(Exception e) {
-            throw new XmppValidationException();
+            throw new XmppValidationException(false);
         }
     }
 
@@ -49,7 +51,7 @@ public class XmppValidator {
         try {
 
         } catch(Exception e) {
-            throw new XmppValidationException();
+            throw new XmppValidationException(false);
         }
     }
 
@@ -57,7 +59,7 @@ public class XmppValidator {
         try {
 
         } catch(Exception e) {
-            throw new XmppValidationException();
+            throw new XmppValidationException(false);
         }
     }
 
@@ -66,10 +68,18 @@ public class XmppValidator {
             validateJID(packet.getFrom());
             validateJID(packet.getTo());
         } catch(Exception e) {
-            throw new XmppValidationException();
+            throw new XmppValidationException(false);
         }
     }
 
+    public void validateJID(String jid) throws XmppValidationException {
+        try {
+            checkNotNull(jid);
+            JID testJid = new JID(jid);
+        } catch (Exception e) {
+            throw new XmppValidationException(false);
+        }
+    }
 
     public void validateJID(JID jid) {
         checkNotNull(jid);

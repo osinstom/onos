@@ -97,10 +97,8 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
         JID jid = new JID(id);
         XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
         if(controller.getDevice(xmppDeviceId)==null) {
-            logger.info("Device {} is not available!", deviceId);
             return false;
-        }
-        else
+        } else
             return true;
     }
 
