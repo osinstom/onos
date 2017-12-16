@@ -42,5 +42,13 @@ public final class XmppDeviceId extends Identifier<String> {
         }
     }
 
+    public static URI uri(JID jid) {
+        try {
+            return new URI(SCHEME, jid.toString(), null);
+        } catch (URISyntaxException e) {
+            return null;
+        }
+    }
+
 
 }

@@ -34,7 +34,7 @@ public class L3VpnBgpInfoCommand extends AbstractShellCommand {
             for (PublishInfo info : bgpInfoMap.keySet()) {
                 if (bgpInfoMap.get(info).equals(deviceId)) {
                     Object payload = info.getPayload();
-                    System.out.println("DEVICE=" + deviceId.toString() + "\n" + payload.toString());
+                    System.out.println("DEVICE=" + deviceId.toString() + "\nID=" + info.getItemId() + "\n" + payload.toString());
                 }
             }
         }

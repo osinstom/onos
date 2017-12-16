@@ -1,5 +1,6 @@
 package org.onosproject.drivers.opencontrail;
 
+import com.google.common.base.Preconditions;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.pubsub.api.PubSubInfoConstructor;
@@ -22,17 +23,21 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
     @Override
     public PublishInfo parsePublishInfo(DeviceId deviceId, Object payload) {
         Element pubsubPayload = (Element) payload;
-        logger.info(pubsubPayload.asXML());
 
         String vpnInstanceName = getVpnInstanceName(pubsubPayload);
+        String itemId = getItemId(pubsubPayload);
 
-        PublishInfo info = new PublishInfo(deviceId, vpnInstanceName);
+        PublishInfo info = new PublishInfo(deviceId, vpnInstanceName, itemId);
         Element item = ((Element) pubsubPayload.elements().get(0)).createCopy();
         BgpVpnPubSubEntry entry = getBgpVpnPubSubEntry(item);
 
         info.setPayload(entry);
 
         return info;
+    }
+
+    private String getItemId(Element element) {
+        return element.element("item").attribute("id").getValue();
     }
 
     public List<Element> constructPayload(PublishInfo info) {

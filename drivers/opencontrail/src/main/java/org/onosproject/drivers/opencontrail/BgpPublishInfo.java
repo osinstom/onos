@@ -10,8 +10,8 @@ public class BgpPublishInfo extends PublishInfo {
 
     private List<BgpVpnPubSubEntry> entries = new ArrayList<BgpVpnPubSubEntry>();
 
-    public BgpPublishInfo(DeviceId deviceId, String vpnInstanceName) {
-        super(deviceId, vpnInstanceName);
+    public BgpPublishInfo(DeviceId deviceId, String vpnInstanceName, String itemId) {
+        super(deviceId, vpnInstanceName, itemId);
     }
 
     public void addEntry(BgpVpnPubSubEntry entry) {

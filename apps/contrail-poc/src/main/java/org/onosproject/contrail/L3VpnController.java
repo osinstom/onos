@@ -77,7 +77,7 @@ public class L3VpnController {
             storeBgpInfo(publisher, publishInfo);
             notifyVpnMembers(publisher, publishInfo);
             notifyPublisherAboutVpnMembers(publisher, publishInfo);
-            logger.info("Status of the VPN Store after Publish: " + vpnDevicesMap.toString());
+            logger.info("Status of the VPN Store after Publish: " + bgpInfoMap.toString());
         } else {
             pubSubService.sendEventNotification(publishInfo.getFromDevice(), new PubSubError(PubSubError.ErrorType.ITEM_NOT_FOUND));
         }
@@ -154,19 +154,29 @@ public class L3VpnController {
     private void handleRetract(Retract retractMsg) {
         logger.info(retractMsg.toString());
         String vpnInstance = retractMsg.getNodeId();
+        String itemId = retractMsg.getItemId();
+
         logger.info("VPN ID = " + vpnInstance);
         // TODO: Need to handle retract action, check a proper behaviour in specification
 
         if(vpnDevicesMap.containsKey(vpnInstance)) {
             DeviceId publisher = retractMsg.getFromDevice();
+            removeBgpInfoFromVpnStore(publisher, itemId);
             List<DeviceId> devicesToNotify = getVpnMembersExceptPublisher(vpnInstance, publisher);
             pubSubService.sendEventNotification(devicesToNotify, retractMsg);
-            logger.info("Status of the VPN Store after Retract: " + vpnDevicesMap.toString());
+            logger.info("Status of the VPN Store after Retract: " + bgpInfoMap.toString());
         } else {
-            // TODO: notify error <item-not-found>
+            pubSubService.sendEventNotification(retractMsg.getFromDevice(), new PubSubError(PubSubError.ErrorType.ITEM_NOT_FOUND));
         }
+    }
 
-
+    private void removeBgpInfoFromVpnStore(DeviceId publisher, String itemId) {
+        for(PublishInfo info : bgpInfoMap.keySet()) {
+            if(itemId.equals(info.getItemId())) {
+                boolean isRemoved = bgpInfoMap.remove(info, publisher);
+                logger.info("BGP entry has been removed");
+            }
+        }
     }
 
     private void removeFromVpnIfDeviceExists(String vpnInstanceName, DeviceId deviceId) {

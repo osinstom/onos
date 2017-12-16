@@ -125,12 +125,11 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     }
 
     @Override
-    public void sendError(PacketError.Condition condition) {
-        PacketError error = new PacketError(condition);
+    public void sendError(PacketError packetError) {
         Packet packet = new IQ();
         packet.setTo(this.deviceId.getJid());
         packet.setFrom(new JID(XmppConstants.SERVER_JID));
-        packet.setError(error);
+        packet.setError(packetError);
         this.writeToChannel(packet);
     }
 

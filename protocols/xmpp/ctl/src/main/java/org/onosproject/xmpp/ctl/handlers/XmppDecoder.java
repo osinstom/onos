@@ -121,7 +121,7 @@ public class XmppDecoder extends MessageToMessageDecoder {
 
     private Packet recognizeAndReturnXmppPacket(Element root) throws UnsupportedStanzaTypeException, IllegalArgumentException {
         checkNotNull(root);
-        logger.info("XMPP Packet received\n" + root.asXML());
+
         Packet packet = null;
         if(root.getName().equals(XmppConstants.IQ_QNAME)) {
             packet = new IQ(root);
@@ -132,7 +132,7 @@ public class XmppDecoder extends MessageToMessageDecoder {
         } else {
             throw new UnsupportedStanzaTypeException("Unrecognized XMPP Packet");
         }
-        logger.info(packet.getElement().asXML());
+        logger.info("XMPP Packet received\n" + root.asXML());
         return packet;
     }
 

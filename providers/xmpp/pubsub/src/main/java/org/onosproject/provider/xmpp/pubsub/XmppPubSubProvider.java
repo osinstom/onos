@@ -99,7 +99,12 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
         XmppDevice xmppDevice = getXmppDevice(xmppDeviceId);
         PacketError.Condition condition = XmppPubSubUtils.getConditionForPubSubError(error);
         if(condition!=null)
-            xmppDevice.sendError(condition);
+            xmppDevice.sendError(new PacketError(condition));
+    }
+
+    private void sendErrorNotification(XmppDeviceId xmppDeviceId, PacketError packet) {
+        XmppDevice xmppDevice = getXmppDevice(xmppDeviceId);
+        xmppDevice.sendError(packet);
     }
 
     private void sendXmppPacketToDevice(XmppDeviceId xmppDeviceId, Packet packet) {
@@ -152,7 +157,7 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
             PublishInfo publishInfo = XmppPubSubUtils.parsePublish(iq);
             notifyPublishInfoToCore(publishInfo);
         } catch (Exception e) {
-            DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString()));
+            DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom()));
             XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(deviceId);
             sendErrorNotification(xmppDeviceId, new PubSubError(PubSubError.ErrorType.INVALID_PAYLOAD));
         }
@@ -163,8 +168,15 @@ public class XmppPubSubProvider extends AbstractProvider implements PubSubProvid
     }
 
     private void handleRetract(IQ iq) {
-        Retract retractInfo = XmppPubSubUtils.parseRetract(iq);
-        notifyRetractInfoToCore(retractInfo);
+        try {
+            Retract retractInfo = XmppPubSubUtils.parseRetract(iq);
+            notifyRetractInfoToCore(retractInfo);
+        } catch(PubSubValidationException e) {
+            logger.info("Error while parsing Retract message.");
+            DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom()));
+            XmppDeviceId xmppDeviceId = XmppPubSubUtils.getXmppDeviceId(deviceId);
+            sendErrorNotification(xmppDeviceId, e.asPacketError());
+        }
     }
 
     private void notifyRetractInfoToCore(Retract retract) {

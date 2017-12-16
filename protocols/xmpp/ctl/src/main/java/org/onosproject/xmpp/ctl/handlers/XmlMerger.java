@@ -55,7 +55,7 @@ public class XmlMerger extends MessageToMessageDecoder {
         try {
             if(object instanceof  XMLEvent) {
                 final XMLEvent event = (XMLEvent) object;
-                logger.info("XML Event received! TYPE: " + event.getEventType());
+//                logger.info("XML Event received! TYPE: " + event.getEventType());
 
                 if (event.isStartDocument() || event.isEndDocument())
                     return;

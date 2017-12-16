@@ -16,6 +16,7 @@ import javax.naming.Name;
 import java.util.IllegalFormatException;
 import java.util.List;
 
+import static org.onosproject.provider.xmpp.pubsub.PubSubValidator.validateRetract;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class XmppPubSubUtils {
@@ -29,7 +30,6 @@ public class XmppPubSubUtils {
 
     public static XmppDeviceId getXmppDeviceId(DeviceId device) {
         String strJid = device.uri().getSchemeSpecificPart();
-        logger.info("Scheme specific: " + strJid);
         JID jid = new JID(strJid);
         XmppDeviceId xmppDeviceId = new XmppDeviceId(jid);
         return xmppDeviceId;
@@ -43,34 +43,38 @@ public class XmppPubSubUtils {
     }
 
     public static SubscriptionInfo parseSubscription(IQ iq) {
-        String device = iq.getElement().attribute("from").getValue();
         String nodeId = XmppPubSubUtils.getChildElement(iq.getChildElement())
                 .attribute("node").getValue();
 
-        SubscriptionInfo subscriptionInfo = new SubscriptionInfo(DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString())), nodeId);
+        SubscriptionInfo subscriptionInfo = new SubscriptionInfo(DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom())), nodeId);
         return subscriptionInfo;
     }
 
     public static PublishInfo parsePublish(IQ iq) {
-        JID fromJid = iq.getFrom();
-        String domain = fromJid.getDomain();
+        String domain = iq.getFrom().getDomain();
         PubSubInfoConstructor pubSubInfoConstructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
 
-        Element publish = (Element) iq.getChildElement().elements().get(0);
-        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString()));
+        Element publish = getElementBody(iq);
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom()));
         PublishInfo publishInfo = pubSubInfoConstructor.parsePublishInfo(deviceId, publish);
 
         return publishInfo;
     }
 
-    public static Retract parseRetract(IQ iq) {
-        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom().toString()));
-        Element retractElement = (Element) iq.getChildElement().elements().get(0);
-        String nodeId = retractElement.attribute("node").getValue();
-        String itemId = retractElement.element("item").attribute("id").getValue();
+    public static Retract parseRetract(IQ iq) throws PubSubValidationException{
+        Element body = getElementBody(iq);
+        validateRetract(body);
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(iq.getFrom()));
+
+        String nodeId = body.attribute("node").getValue();
+        String itemId = body.element("item").attribute("id").getValue();
 
         Retract retract = new Retract(deviceId, nodeId, itemId);
         return retract;
+    }
+
+    private static Element getElementBody(IQ iq) {
+        return (Element) iq.getChildElement().elements().get(0);
     }
 
     public static Packet constructXmppNotification(XmppDeviceId xmppDeviceId, Object message)

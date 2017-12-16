@@ -207,8 +207,6 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
      */
     private static final class XmppPacketHandler implements Runnable {
 
-        private final Logger logger = LoggerFactory.getLogger(getClass());
-
         protected final ChannelHandlerContext ctx;
         protected final Packet packet;
 
@@ -219,7 +217,6 @@ public class XmppChannelHandler extends CombinedChannelDuplexHandler {
 
         @Override
         public void run() {
-            logger.info("RECEIVED:\n{}", packet.toXML());
             JID jid = packet.getFrom();
             XmppDevice device = XmppDeviceFactory.getInstance().getXmppDeviceInstanceByJid(jid);
             device.handlePacket(packet);
