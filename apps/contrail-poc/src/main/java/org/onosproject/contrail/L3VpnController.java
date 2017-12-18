@@ -39,7 +39,7 @@ public class L3VpnController {
     private ConcurrentMap<PublishInfo, DeviceId> bgpInfoMap = Maps.newConcurrentMap();
     private ConcurrentMap<PublishInfo, DeviceId> alreadyNotified = Maps.newConcurrentMap();
 
-    private String[] vpns = { "blue", "red" };
+    private String[] vpns = { "net0", "net1", "net2", "net3", "net4", "net5", "net6", "net7", "net8", "net9" };
 
     @Activate
     public void activate() {
