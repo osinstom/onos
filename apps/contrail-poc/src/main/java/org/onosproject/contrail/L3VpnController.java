@@ -2,6 +2,7 @@ package org.onosproject.contrail;
 
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.*;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -36,8 +37,9 @@ public class L3VpnController {
 
     private ConcurrentMap<String, List<DeviceId>> vpnDevicesMap = Maps.newConcurrentMap();
     private ConcurrentMap<PublishInfo, DeviceId> bgpInfoMap = Maps.newConcurrentMap();
+    private ConcurrentMap<PublishInfo, DeviceId> alreadyNotified = Maps.newConcurrentMap();
 
-    private String[] vpns = { "blue", "red" };
+    private String[] vpns = { "net0", "net1", "net2", "net3", "net4", "net5", "net6", "net7", "net8", "net9" };
 
     @Activate
     public void activate() {
@@ -107,16 +109,23 @@ public class L3VpnController {
         List<DeviceId> vpnMembers = getVpnMembersExceptPublisher(vpnInstance, publisher);
 
         for(DeviceId member : vpnMembers) {
-            PublishInfo bgpInfo = null;
             for (PublishInfo info : bgpInfoMap.keySet()) {
-                if (bgpInfoMap.get(info).equals(member)) {
-                    bgpInfo = info;
+                if (bgpInfoMap.get(info).equals(member) && !isAlreadyNotified(publisher, info)) {
+                    logger.info("Sending Event Notification: " + info.toString());
+                    pubSubService.sendEventNotification(publisher, info);
+                    alreadyNotified.putIfAbsent(info, publisher);
                 }
             }
-            if(bgpInfo != null) {
-                pubSubService.sendEventNotification(publisher, bgpInfo);
+        }
+    }
+
+    private boolean isAlreadyNotified(DeviceId publisher, PublishInfo info) {
+        for(PublishInfo notifiedInfo : alreadyNotified.keySet()) {
+            if(notifiedInfo.equals(info) && alreadyNotified.get(notifiedInfo).equals(publisher)) {
+                return true;
             }
         }
+        return false;
     }
 
     /**
