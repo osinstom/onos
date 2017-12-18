@@ -21,6 +21,8 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
 
     private final Logger logger = getLogger(getClass());
 
+    private static final String BGPVPN_NAMESPACE = "urn:ietf:params:xml:ns:bgp:l3vpn:unicast";
+
     @Override
     public PublishInfo parsePublishInfo(DeviceId deviceId, Object payload) {
         Element pubsubPayload = (Element) payload;
@@ -49,33 +51,26 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         Element items = df.createElement("items");
         items.addAttribute("node", info.getNodeId());
 
-
-
-
         BgpVpnPubSubEntry bgpEntry = (BgpVpnPubSubEntry) info.getPayload();
         // entry element
-        Element entry = df.createElement("entry");
+        Element entry = df.createElement("entry", BGPVPN_NAMESPACE);
+        // <nlri>
         Element nlri = df.createElement("nlri");
-        Element nlriAf = df.createElement("af");
-        nlriAf.addText(Integer.toString(bgpEntry.getNrliAf()));
-        Element nlriIpAddress = df.createElement("address");
-        nlriIpAddress.addText(bgpEntry.getNrliIpAddress());
-        nlri.elements().add(nlriAf);
-        nlri.elements().add(nlriIpAddress);
+        nlri.addAttribute("af", Integer.toString(bgpEntry.getNrliAf()));
+        nlri.addText(bgpEntry.getNrliIpAddress());
 
+        // <next-hop>
         Element nextHop = df.createElement("next-hop");
-        Element nextHopAf = df.createElement("af");
-        nextHopAf.addText(Integer.toString(bgpEntry.getNextHopAf()));
-        Element nextHopAddress = df.createElement("address");
-        nextHopAddress.addText(bgpEntry.getNextHopAddress());
-        Element nextHopLabel = df.createElement("label");
-        nextHopLabel.addText(Integer.toString(bgpEntry.getLabel()));
-        nextHop.elements().add(nextHopAf);
-        nextHop.elements().add(nextHopAddress);
-        nextHop.elements().add(nextHopLabel);
+        nextHop.addAttribute("af", Integer.toString(bgpEntry.getNextHopAf()));
+        nextHop.addText(bgpEntry.getNextHopAddress());
+
+        //<label>
+        Element label = df.createElement("label");
+        label.addText(Integer.toString(bgpEntry.getLabel()));
 
         entry.elements().add(nlri);
         entry.elements().add(nextHop);
+        entry.elements().add(label);
         Element item = df.createElement("item");
         item.addAttribute("id", bgpEntry.getNrliIpAddress() + ":1:" + bgpEntry.getNextHopAddress());
         item.add(entry);
