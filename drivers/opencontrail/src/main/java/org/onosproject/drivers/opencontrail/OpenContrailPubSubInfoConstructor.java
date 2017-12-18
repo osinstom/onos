@@ -80,16 +80,17 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         item.addAttribute("id", bgpEntry.getNrliIpAddress() + ":1:" + bgpEntry.getNextHopAddress());
         item.add(entry);
         items.add(item);
-        
+
         return items;
     }
 
     @Override
     public Object constructNotification(Object message) throws UnsupportedOperationException {
+        logger.info(message.toString());
         if(message instanceof Element) {
             Packet config = createConfigXmppPacket(message);
             return config;
-        } else if (message instanceof BgpVpnPubSubEntry) {
+        } else if (message instanceof PublishInfo) {
             Element notification = constructPayload((PublishInfo) message);
             return notification;
         } else {
