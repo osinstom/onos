@@ -49,6 +49,7 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
 
         // items element
         Element items = df.createElement("items");
+        items.add(Namespace.NO_NAMESPACE);
         items.addAttribute("node", info.getNodeId());
 
         BgpVpnPubSubEntry bgpEntry = (BgpVpnPubSubEntry) info.getPayload();
@@ -56,16 +57,19 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         Element entry = df.createElement("entry", BGPVPN_NAMESPACE);
         // <nlri>
         Element nlri = df.createElement("nlri");
+        nlri.add(Namespace.NO_NAMESPACE);
         nlri.addAttribute("af", Integer.toString(bgpEntry.getNrliAf()));
         nlri.addText(bgpEntry.getNrliIpAddress());
 
         // <next-hop>
         Element nextHop = df.createElement("next-hop");
+        nextHop.add(Namespace.NO_NAMESPACE);
         nextHop.addAttribute("af", Integer.toString(bgpEntry.getNextHopAf()));
         nextHop.addText(bgpEntry.getNextHopAddress());
 
         //<label>
         Element label = df.createElement("label");
+        label.add(Namespace.NO_NAMESPACE);
         label.addText(Integer.toString(bgpEntry.getLabel()));
 
         entry.elements().add(nlri);
