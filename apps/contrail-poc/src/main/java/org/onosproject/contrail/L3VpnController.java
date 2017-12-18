@@ -107,14 +107,11 @@ public class L3VpnController {
         List<DeviceId> vpnMembers = getVpnMembersExceptPublisher(vpnInstance, publisher);
 
         for(DeviceId member : vpnMembers) {
-            PublishInfo bgpInfo = null;
             for (PublishInfo info : bgpInfoMap.keySet()) {
                 if (bgpInfoMap.get(info).equals(member)) {
-                    bgpInfo = info;
+                    logger.info("Sending Event Notification: " + info.toString());
+                    pubSubService.sendEventNotification(publisher, info);
                 }
-            }
-            if(bgpInfo != null) {
-                pubSubService.sendEventNotification(publisher, bgpInfo);
             }
         }
     }
