@@ -105,6 +105,7 @@ public class L3VpnController {
     private void notifyPublisherAboutVpnMembers(DeviceId publisher, PublishInfo publishInfo) {
         String vpnInstance = publishInfo.getNodeId();
         List<DeviceId> vpnMembers = getVpnMembersExceptPublisher(vpnInstance, publisher);
+
         for(DeviceId member : vpnMembers) {
             PublishInfo bgpInfo = null;
             for (PublishInfo info : bgpInfoMap.keySet()) {

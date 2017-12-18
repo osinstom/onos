@@ -4,8 +4,10 @@ import org.dom4j.Element;
 import org.onosproject.pubsub.api.PubSubError;
 import org.xmpp.packet.PacketError;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Created by autonet on 16.12.17.
+ * Validates incoming PubSub XMPP messages.
  */
 public class PubSubValidator {
 
@@ -28,6 +30,20 @@ public class PubSubValidator {
             throw new PubSubValidationException(PacketError.Condition.bad_request, "item-required");
         }
         return retract;
+    }
+
+    public static Element validatePublish(Element publish) throws PubSubValidationException {
+        try {
+            checkNotEmpty(publish.attribute("node").getValue());
+        } catch (Exception e) {
+            throw new PubSubValidationException(PacketError.Condition.bad_request, "nodeid-required");
+        }
+        try {
+            checkNotNull(publish.element("item").element("entry"));
+        } catch (Exception e) {
+            throw new PubSubValidationException(PacketError.Condition.bad_request, "payload-required");
+        }
+        return publish;
     }
 
 }

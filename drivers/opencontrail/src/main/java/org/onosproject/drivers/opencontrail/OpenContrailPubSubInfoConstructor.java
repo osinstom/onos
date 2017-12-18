@@ -8,6 +8,7 @@ import org.onosproject.pubsub.api.PublishInfo;
 import org.dom4j.*;
 import org.slf4j.Logger;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.Message;
 import org.xmpp.packet.Packet;
 
 import java.util.ArrayList;
@@ -40,33 +41,57 @@ public class OpenContrailPubSubInfoConstructor extends AbstractHandlerBehaviour 
         return element.element("item").attribute("id").getValue();
     }
 
-    public List<Element> constructPayload(PublishInfo info) {
-        BgpPublishInfo bgpInfo = (BgpPublishInfo) info;
+    public Element constructPayload(PublishInfo info) {
+
         DocumentFactory df = DocumentFactory.getInstance();
 
-        List<Element> entries = new ArrayList<Element>();
-        for(BgpVpnPubSubEntry bgpEntry : bgpInfo.getEntries()) {
-            // entry element
-            Element entry = df.createElement("entry");
-            Element nlri = df.createElement("nlri");
-            Element nlriAf = df.createElement("af");
-            nlriAf.addText(Integer.toString(bgpEntry.getNrliAf()));
-            Element nlriIpAddress = df.createElement("address");
-            nlriIpAddress.addText(bgpEntry.getNrliIpAddress());
-            nlri.elements().add(nlriAf);
-            nlri.elements().add(nlriIpAddress);
-            entry.elements().add(nlri);
-            entries.add(entry);
-        }
+        // items element
+        Element items = df.createElement("items");
+        items.addAttribute("node", info.getNodeId());
 
-        return entries;
+
+
+
+        BgpVpnPubSubEntry bgpEntry = (BgpVpnPubSubEntry) info.getPayload();
+        // entry element
+        Element entry = df.createElement("entry");
+        Element nlri = df.createElement("nlri");
+        Element nlriAf = df.createElement("af");
+        nlriAf.addText(Integer.toString(bgpEntry.getNrliAf()));
+        Element nlriIpAddress = df.createElement("address");
+        nlriIpAddress.addText(bgpEntry.getNrliIpAddress());
+        nlri.elements().add(nlriAf);
+        nlri.elements().add(nlriIpAddress);
+
+        Element nextHop = df.createElement("next-hop");
+        Element nextHopAf = df.createElement("af");
+        nextHopAf.addText(Integer.toString(bgpEntry.getNextHopAf()));
+        Element nextHopAddress = df.createElement("address");
+        nextHopAddress.addText(bgpEntry.getNextHopAddress());
+        Element nextHopLabel = df.createElement("label");
+        nextHopLabel.addText(Integer.toString(bgpEntry.getLabel()));
+        nextHop.elements().add(nextHopAf);
+        nextHop.elements().add(nextHopAddress);
+        nextHop.elements().add(nextHopLabel);
+
+        entry.elements().add(nlri);
+        entry.elements().add(nextHop);
+        Element item = df.createElement("item");
+        item.addAttribute("id", bgpEntry.getNrliIpAddress() + ":1:" + bgpEntry.getNextHopAddress());
+        item.add(entry);
+        items.add(item);
+        
+        return items;
     }
 
     @Override
-    public Packet constructNotification(Object message) throws UnsupportedOperationException {
+    public Object constructNotification(Object message) throws UnsupportedOperationException {
         if(message instanceof Element) {
             Packet config = createConfigXmppPacket(message);
             return config;
+        } else if (message instanceof BgpVpnPubSubEntry) {
+            Element notification = constructPayload((PublishInfo) message);
+            return notification;
         } else {
             throw new UnsupportedOperationException();
         }

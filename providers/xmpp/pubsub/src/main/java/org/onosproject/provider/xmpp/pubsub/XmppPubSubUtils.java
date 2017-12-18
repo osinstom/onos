@@ -124,7 +124,14 @@ public class XmppPubSubUtils {
         PubSubInfoConstructor constructor = PubSubConstructorFactory.getInstance().getPubSubInfoConstructor(domain);
         Packet packet = null;
         try {
-            packet = (Packet) constructor.constructNotification(message);
+            Object payload = constructor.constructNotification(message);
+            if(payload instanceof Element) {
+                packet = constructXmppEventNotificationMessage((Element) payload);
+            } else if (payload instanceof Packet) {
+                packet = (Packet) payload;
+            } else {
+                packet = constructXmppEventNotificationMessage((PublishInfo) message);
+            }
         } catch(UnsupportedOperationException e) {
             // if UnsupportedOperationException is received, use default construction method
             packet = constructXmppEventNotificationMessage((PublishInfo) message);
@@ -132,15 +139,21 @@ public class XmppPubSubUtils {
         return packet;
     }
 
+    public static Packet constructXmppEventNotificationMessage(Element payload) {
+        Message message = new Message();
+        DocumentFactory df = DocumentFactory.getInstance();
+        Element event = df.createElement("event", PUBSUB_EVENT_NS );
+        event.elements().add(payload);
+        // event element
+        message.getElement().elements().add(event);
+
+        return message;
+    }
+
 
     public static Packet constructXmppEventNotificationMessage(PublishInfo publishInfo) {
 
-        Message message = new Message();
-
         DocumentFactory df = DocumentFactory.getInstance();
-
-        Element event = df.createElement("event", PUBSUB_EVENT_NS );
-
         // items element
         Element items = df.createElement("items");
         items.addAttribute("node", publishInfo.getNodeId());
@@ -149,10 +162,8 @@ public class XmppPubSubUtils {
         item.setQName(QName.get(item.getName(), Namespace.NO_NAMESPACE, item.getQualifiedName()));
 
         items.elements().add(item);
-        event.elements().add(items);
 
-        // event element
-        message.getElement().elements().add(event);
+        Packet message = constructXmppEventNotificationMessage(items);
 
         return message;
     }
