@@ -8,7 +8,9 @@ import org.xmpp.packet.Packet;
 import java.net.InetSocketAddress;
 
 /**
- * Created by autonet on 01.09.17.
+ * Responsible for keeping track of the current set of devices
+ * connected to the system. As well as notifying Xmpp Stanza listeners.
+ *
  */
 public interface XmppDeviceManager {
 
@@ -22,5 +24,5 @@ public interface XmppDeviceManager {
 
     XmppDeviceId getXmppDeviceIdBySocketAddress(InetSocketAddress address);
 
-
 }
+

@@ -1,10 +1,11 @@
 package org.onosproject.drivers.xmpp;
 
+
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
 /**
- * Loader for XMPP device drivers.
+ * Loader for OpenContrail XMPP device drivers.
  */
 @Component(immediate = true)
 public class XmppDriversLoader extends AbstractDriverLoader {
@@ -15,4 +16,5 @@ public class XmppDriversLoader extends AbstractDriverLoader {
     public XmppDriversLoader() {
         super("/xmpp-drivers.xml");
     }
+
 }

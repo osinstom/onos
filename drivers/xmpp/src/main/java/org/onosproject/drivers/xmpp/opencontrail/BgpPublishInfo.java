@@ -1,4 +1,4 @@
-package org.onosproject.drivers.opencontrail;
+package org.onosproject.drivers.xmpp.opencontrail;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.pubsub.api.PublishInfo;
