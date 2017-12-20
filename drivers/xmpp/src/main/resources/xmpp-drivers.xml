@@ -15,10 +15,11 @@
         ~ limitations under the License.
         -->
 <drivers>
-    <driver name="XEP0060"
-            manufacturer="UNKNOWN" hwVersion="XMPP Device" swVersion=".*">
-        <behaviour api="org.onosproject.xmpp.driver.XmppDeviceDriver"
-                   impl="org.onosproject.drivers.xmpp.xep0060.PubSubXmppDriver"/>
+    <driver name="opencontrail"
+            manufacturer="vnsw.contrailsystems.com" hwVersion="XMPP Device" swVersion=".*">
+        <behaviour api="org.onosproject.pubsub.api.PubSubInfoConstructor"
+                   impl="org.onosproject.drivers.xmpp.opencontrail.OpenContrailPubSubInfoConstructor"/>
+        <!-- OTHER BEHAVIOURS HERE -->
     </driver>
-    <!-- OTHER XEP's HERE -->
 </drivers>
+

@@ -1,6 +1,5 @@
-package org.onosproject.drivers.opencontrail;
+package org.onosproject.drivers.xmpp.opencontrail;
 
-import com.google.common.base.Preconditions;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.pubsub.api.PubSubInfoConstructor;
@@ -8,12 +7,7 @@ import org.onosproject.pubsub.api.PublishInfo;
 import org.dom4j.*;
 import org.slf4j.Logger;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.Message;
 import org.xmpp.packet.Packet;
-
-import java.util.ArrayList;
-import java.util.IllegalFormatException;
-import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
