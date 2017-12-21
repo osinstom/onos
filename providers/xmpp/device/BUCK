@@ -2,8 +2,8 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
     '//incubator/api:onos-incubator-api',
-    '//protocols/xmpp/api:onos-protocols-xmpp-api',
-    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
 ]
 
 TEST_DEPS = [

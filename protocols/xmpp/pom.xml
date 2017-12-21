@@ -13,8 +13,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>ctl</module>
-        <module>api</module>
+        <module>onos-xmpp-core</module>
+        <module>pubsub</module>
     </modules>
 
     <dependencies>

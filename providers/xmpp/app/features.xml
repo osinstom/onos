@@ -21,6 +21,6 @@
         <bundle>mvn:${project.groupId}/onos-xmpp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-xmpp-ctl/${project.version}</bundle>
 
-        <bundle>mvn:${project.groupId}/onos-xmpp-provider-pubsub/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-xmpp-provider-bgpvpn/${project.version}</bundle>
     </feature>
 </features>

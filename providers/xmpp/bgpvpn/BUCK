@@ -1,0 +1,18 @@
+BUNDLES = [
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
+    '//providers/xmpp/bgpvpn/device:onos-providers-xmpp-bgpvpn-device',
+    '//providers/xmpp/bgpvpn/route:onos-providers-xmpp-bgpvpn-route',
+    '//providers/xmpp/bgpvpn/host:onos-providers-xmpp-bgpvpn-host',
+    '//lib:org.apache.servicemix.bundles.dom4j',
+    '//lib:tinder-xmpp',
+]
+
+onos_app (
+    app_name = 'org.onosproject.xmpp.bgpvpn',
+    title = 'XMPP BGP VPN Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'XMPP protocol southbound provider for BGP VPN.',
+)

@@ -20,9 +20,6 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.xmpp.packet.JID;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

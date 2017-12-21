@@ -56,8 +56,10 @@ CORE = UTILS + API + [
     '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
     '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
     '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
-    '//protocols/xmpp/api:onos-protocols-xmpp-api',
-    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
+    '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
+    '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
 
     '//drivers/utilities:onos-drivers-utilities',
 
@@ -77,8 +79,7 @@ CORE = UTILS + API + [
     '//providers/tl1/device:onos-providers-tl1-device',
     '//providers/general/device:onos-providers-general-device',
     '//providers/p4runtime/packet:onos-providers-p4runtime-packet',
-    '//providers/xmpp/device:onos-providers-xmpp-device',
-    '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
+    #'//providers/xmpp/bgpvpn/route:onos-providers-xmpp-bgpvpn-route',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
@@ -113,7 +114,6 @@ ONOS_DRIVERS = [
     '//drivers/hp:onos-drivers-hp-oar',
     '//drivers/p4runtime:onos-drivers-p4runtime-oar',
     '//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar',
-    '//drivers/xmpp:onos-drivers-xmpp-oar',
 ]
 
 ONOS_PROVIDERS = [
@@ -142,7 +142,7 @@ ONOS_PROVIDERS = [
     '//providers/general:onos-providers-general-oar',
     '//providers/p4runtime:onos-providers-p4runtime-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
-    '//providers/xmpp:onos-providers-xmpp-oar',
+    '//providers/xmpp/bgpvpn:onos-providers-xmpp-bgpvpn-oar',
 ]
 
 ONOS_APPS = [
@@ -238,7 +238,6 @@ ONOS_APPS = [
     '//apps/simplefabric:onos-apps-simplefabric-oar',
     '//apps/kafka-integration:onos-apps-kafka-integration-oar',
     '//apps/rabbitmq:onos-apps-rabbitmq-oar',
-    '//apps/contrail-poc:onos-apps-contrail-poc-oar',
 ]
 
 PROTOCOL_APPS = [
@@ -279,7 +278,6 @@ APP_JARS = [
 #   '//apps/p4runtime-test:onos-apps-p4runtime-test',
     '//apps/kafka-integration/api:onos-apps-kafka-integration-api',
     '//apps/kafka-integration/app:onos-apps-kafka-integration-app',
-    '//apps/pubsub:onos-apps-pubsub',
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES \

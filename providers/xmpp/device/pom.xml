@@ -17,7 +17,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-xmpp-api</artifactId>
+            <artifactId>onos-xmpp-core-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

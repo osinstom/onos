@@ -19,9 +19,9 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-xmpp-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-xmpp-ctl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-xmpp-core-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-xmpp-core-ctl/${project.version}</artifact>
 
-    <artifact>mvn:${project.groupId}/onos-xmpp-provider-pubsub/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-xmpp-provider-bgpvpn/${project.version}</artifact>
 
 </app>
