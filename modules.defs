@@ -56,6 +56,8 @@ CORE = UTILS + API + [
     '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
     '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
     '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
+    '//protocols/xmpp/api:onos-protocols-xmpp-api',
+    '//protocols/xmpp/ctl:onos-protocols-xmpp-ctl',
 
     '//drivers/utilities:onos-drivers-utilities',
 
@@ -75,6 +77,8 @@ CORE = UTILS + API + [
     '//providers/tl1/device:onos-providers-tl1-device',
     '//providers/general/device:onos-providers-general-device',
     '//providers/p4runtime/packet:onos-providers-p4runtime-packet',
+    '//providers/xmpp/device:onos-providers-xmpp-device',
+    '//providers/xmpp/pubsub:onos-providers-xmpp-pubsub',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
@@ -109,6 +113,7 @@ ONOS_DRIVERS = [
     '//drivers/hp:onos-drivers-hp-oar',
     '//drivers/p4runtime:onos-drivers-p4runtime-oar',
     '//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar',
+    '//drivers/xmpp:onos-drivers-xmpp-oar',
 ]
 
 ONOS_PROVIDERS = [
@@ -137,6 +142,7 @@ ONOS_PROVIDERS = [
     '//providers/general:onos-providers-general-oar',
     '//providers/p4runtime:onos-providers-p4runtime-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
+    '//providers/xmpp:onos-providers-xmpp-oar',
 ]
 
 ONOS_APPS = [
@@ -232,6 +238,7 @@ ONOS_APPS = [
     '//apps/simplefabric:onos-apps-simplefabric-oar',
     '//apps/kafka-integration:onos-apps-kafka-integration-oar',
     '//apps/rabbitmq:onos-apps-rabbitmq-oar',
+    '//apps/contrail-poc:onos-apps-contrail-poc-oar',
 ]
 
 PROTOCOL_APPS = [
@@ -272,6 +279,7 @@ APP_JARS = [
 #   '//apps/p4runtime-test:onos-apps-p4runtime-test',
     '//apps/kafka-integration/api:onos-apps-kafka-integration-api',
     '//apps/kafka-integration/app:onos-apps-kafka-integration-app',
+    '//apps/pubsub:onos-apps-pubsub',
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES \
