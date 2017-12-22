@@ -1,16 +1,22 @@
 package org.onosproject.provider.xmpp.bgpvpn.route;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.*;
+import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.evpnrouteservice.*;
+import org.onosproject.net.Device;
+import org.onosproject.net.Host;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPubSubEvent;
 import org.onosproject.xmpp.pubsub.XmppPubSubEventListener;
+import org.onosproject.xmpp.pubsub.model.EventNotification;
 import org.onosproject.xmpp.pubsub.model.Publish;
 import org.onosproject.xmpp.pubsub.model.Retract;
 import org.slf4j.Logger;
@@ -19,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -33,6 +40,9 @@ public class XmppBgpVpnRouteProvider extends AbstractProvider  {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EvpnRouteAdminService evpnRouteAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppPubSubController xmppPubSubController;
@@ -118,6 +128,29 @@ public class XmppBgpVpnRouteProvider extends AbstractProvider  {
         }
     }
 
+    private void sendEventNotification(Device device, EvpnRoute evpnRoute) {
+        Element payload = asXmppPayload(evpnRoute);
+        xmppPubSubController.notify(device.id(), new EventNotification(evpnRoute.exportRouteTarget().get(0).getRouteTarget(), payload));
+    }
+
+    private Element asXmppPayload(EvpnRoute evpnRoute) {
+        DocumentFactory df = DocumentFactory.getInstance();
+        Element item = df.createElement("item");
+        item.addAttribute("id", evpnRoute.prefixIp().address().toString() + ":1:" + evpnRoute.ipNextHop().toString());
+        Element entry = df.createElement("entry", BGPVPN_NAMESPACE);
+        Element nlri = df.createElement("nlri");
+        nlri.addText(evpnRoute.prefixIp().address().toString());
+        Element nextHop = df.createElement("next-hop");
+        nextHop.addText(evpnRoute.ipNextHop().toString());
+        Element label = df.createElement("label");
+        label.addText(Integer.toString(evpnRoute.label().getLabel()));
+        entry.add(nlri);
+        entry.add(nextHop);
+        entry.add(label);
+        item.add(entry);
+        return item;
+    }
+
     private class InternalEvpnRouteListener implements EvpnRouteListener {
 
         @Override
@@ -128,11 +161,15 @@ public class XmppBgpVpnRouteProvider extends AbstractProvider  {
                 return;
             }
 
+            Set<Device> vpnDevices = getDevicesByVpn(evpnRoute);
+
             switch (event.type()) {
                 case ROUTE_ADDED:
                 case ROUTE_UPDATED:
                     logger.info("route added");
-
+                    vpnDevices.forEach(device -> {
+                        sendEventNotification(device, evpnRoute);
+                    });
                     break;
                 case ROUTE_REMOVED:
                     logger.info("route deleted");
@@ -143,6 +180,19 @@ public class XmppBgpVpnRouteProvider extends AbstractProvider  {
             }
         }
 
+    }
+
+    private Set<Device> getDevicesByVpn(EvpnRoute evpnRoute) {
+        Set<Device> vpnDevices = Sets.newHashSet();
+        deviceService.getDevices(Device.Type.VIRTUAL).forEach( device -> {
+            evpnRoute.exportRouteTarget().forEach( vpnRouteTarget -> {
+                logger.info(vpnRouteTarget + " ? " + device.annotations().value("VPN"));
+                if(vpnRouteTarget.getRouteTarget().equals(device.annotations().value("VPN"))) {
+                    vpnDevices.add(device);
+                }
+            });
+        });
+        return vpnDevices;
     }
 
 }

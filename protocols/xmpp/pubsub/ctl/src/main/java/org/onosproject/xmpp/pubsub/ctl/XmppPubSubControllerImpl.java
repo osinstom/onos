@@ -4,7 +4,9 @@ import org.apache.felix.scr.annotations.*;
 import org.dom4j.Element;
 import org.onosproject.net.DeviceId;
 import org.onosproject.xmpp.core.XmppController;
+import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.core.XmppIqListener;
+import org.onosproject.xmpp.pubsub.XmppPubSubConstants;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPubSubEvent;
 import org.onosproject.xmpp.pubsub.XmppPubSubEventListener;
@@ -13,13 +15,14 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.JID;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.xmpp.pubsub.ctl.XmppPubSubConstants.PUBSUB_ELEMENT;
-import static org.onosproject.xmpp.pubsub.ctl.XmppPubSubConstants.PUBSUB_NAMESPACE;
+import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_ELEMENT;
+import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_NAMESPACE;
 
 /**
  *
@@ -52,7 +55,14 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
 
     @Override
     public void notify(DeviceId deviceId, EventNotification eventNotification) {
+        XmppDeviceId xmppDeviceId = asXmppDeviceId(deviceId);
+        xmppController.getDevice(xmppDeviceId).sendPacket(eventNotification);
+    }
 
+    private XmppDeviceId asXmppDeviceId(DeviceId deviceId) {
+        String[] parts = deviceId.toString().split(":");
+        JID jid = new JID(parts[1]);
+        return new XmppDeviceId(jid);
     }
 
     @Override

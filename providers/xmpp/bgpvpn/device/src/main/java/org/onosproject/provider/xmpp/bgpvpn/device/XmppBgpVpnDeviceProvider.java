@@ -31,13 +31,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  * XMPP Device provider.
  */
 @Component(immediate = true)
-public class XmppBgpVpnDeviceProvider extends AbstractProvider {
+public class XmppBgpVpnDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private final Logger logger = getLogger(getClass());
 
     private static final String PROVIDER = "org.onosproject.provider.xmpp.bgpvpn.device";
     private static final String APP_NAME = "org.onosproject.xmpp.bgpvpn";
-    private static final String XMPP = "xmpp";
+    private static final String XMPP = "XMPP (XEP0060)";
 
     private static final String HARDWARE_VERSION = "XMPP Device";
     private static final String SOFTWARE_VERSION = "2.0";
@@ -47,10 +47,15 @@ public class XmppBgpVpnDeviceProvider extends AbstractProvider {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VirtualNetworkAdminService virtualNetworkAdminService;
+    protected DeviceProviderRegistry providerRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppPubSubController xmppPubSubController;
+
+    protected DeviceProviderService providerService;
 
     protected ApplicationId appId;
 
@@ -62,6 +67,7 @@ public class XmppBgpVpnDeviceProvider extends AbstractProvider {
 
     @Activate
     public void activate(ComponentContext context) {
+        providerService = providerRegistry.register(this);
         appId = coreService.registerApplication(APP_NAME);
         xmppPubSubController.addXmppPubSubEventListener(xmppSubscriptionListener);
         logger.info("Started");
@@ -71,6 +77,26 @@ public class XmppBgpVpnDeviceProvider extends AbstractProvider {
     public void deactivate(ComponentContext context) {
         xmppPubSubController.removeXmppPubSubEventListener(xmppSubscriptionListener);
         logger.info("Stopped");
+    }
+
+    @Override
+    public void triggerProbe(DeviceId deviceId) {
+
+    }
+
+    @Override
+    public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
+
+    }
+
+    @Override
+    public boolean isReachable(DeviceId deviceId) {
+        return false;
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
+
     }
 
     private class InternalXmppPubSubEventListener implements XmppPubSubEventListener {
@@ -91,13 +117,44 @@ public class XmppBgpVpnDeviceProvider extends AbstractProvider {
     }
 
     private void handleSubscribe(Subscribe subscribe) {
-        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(subscribe.getJIDAddress()));
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(subscribe.getJIDAddress() + ":" + subscribe.getNodeID()));
+
+        // Assumption: manufacturer is uniquely identified by domain part of JID
+        String manufacturer = subscribe.getFrom().getDomain();
+
+        ChassisId cid = new ChassisId();
+
+        SparseAnnotations annotations = DefaultAnnotations.builder()
+                .set(AnnotationKeys.PROTOCOL, XMPP)
+                .set("VPN", subscribe.getNodeID())
+                .build();
+
+        DeviceDescription deviceDescription = new DefaultDeviceDescription(
+                deviceId.uri(),
+                Device.Type.VIRTUAL,
+                manufacturer, HARDWARE_VERSION,
+                SOFTWARE_VERSION, SERIAL_NUMBER,
+                cid, true,
+                annotations);
+
+        if (deviceService.getDevice(deviceId) == null) {
+            providerService.deviceConnected(deviceId, deviceDescription);
+        } else if(deviceService.getDevice(deviceId) != null && !deviceService.getDevice(deviceId).annotations().value("VPN").equals(subscribe.getNodeID())) {
+            providerService.deviceConnected(deviceId, deviceDescription);
+        }
+
     }
 
     private void handleUnsubscribe(Unsubscribe unsubscribe) {
-        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(unsubscribe.getJIDAddress()));
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(unsubscribe.getJIDAddress() + ":" + unsubscribe.getNodeID()));
 
-
+        if (deviceService.getDevice(deviceId) != null) {
+            providerService.deviceDisconnected(deviceId);
+            logger.info("XMPP device {} removed from XMPP controller", deviceId);
+        } else {
+            logger.warn("XMPP device {} does not exist in the store, " +
+                    "or it may already have been removed", deviceId);
+        }
     }
 
 

@@ -46,7 +46,7 @@ public class BgpVpnPublish {
     }
 
     public String getRouteDistinguisher() {
-        return nlriIpAddress + ":" + label;
+        return nextHopAddress + ":" + label;
     }
 
     @Override

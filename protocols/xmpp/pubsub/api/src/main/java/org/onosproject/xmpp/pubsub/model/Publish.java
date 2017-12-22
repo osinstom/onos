@@ -8,32 +8,45 @@ import org.xmpp.packet.IQ;
  */
 public class Publish extends IQ {
 
+    private String JID;
+    private String nodeID;
+    private Element item;
+    private String itemID;
+    private Element itemEntry;
+    private String itemEntryNamespace;
+
     public Publish(IQ iq) {
         super(iq.getElement());
+        this.JID = this.fromJID.toString();
+        this.nodeID = this.getChildElement().element("publish").attribute("node").getValue();
+        this.item = this.getChildElement().element("publish").element("item");
+        this.itemID = this.item.attribute("id").getValue();
+        this.itemEntry = this.item.element("entry");
+        this.itemEntryNamespace = this.itemEntry.getNamespaceURI();
     }
 
     public String getJIDAddress() {
-        return this.fromJID.toString();
+        return this.JID;
     }
 
     public String getNodeID() {
-        return this.getChildElement().element("publish").attribute("node").getValue();
+        return this.nodeID;
     }
 
     public Element getItem() {
-        return this.getChildElement().element("publish").element("item");
+        return this.item;
     }
 
     public String getItemID() {
-        return this.getChildElement().element("publish").element("item").attribute("id").getValue();
+        return this.itemID;
     }
 
     public Element getItemEntry() {
-        return this.getChildElement().element("publish").element("item").element("entry");
+        return this.itemEntry;
     }
 
     public String getItemEntryNamespace() {
-        return this.getChildElement().element("publish").element("item").element("entry").getNamespaceURI();
+        return this.itemEntryNamespace;
     }
 
     @Override
