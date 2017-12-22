@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//core/api:onos-api',
     '//lib:tinder-xmpp',
     '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
 ]
 

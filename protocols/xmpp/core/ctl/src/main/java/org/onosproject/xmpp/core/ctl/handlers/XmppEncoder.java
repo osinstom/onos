@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 import io.netty.util.CharsetUtil;
-import org.onosproject.xmpp.stream.StreamEvent;
+import org.onosproject.xmpp.core.stream.StreamEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.Packet;

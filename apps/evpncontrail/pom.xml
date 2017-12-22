@@ -3,19 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-xmpp-provider-bgpvpn</artifactId>
+        <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-xmpp-providers-bgpvpn-route</artifactId>
+    <artifactId>evpncontrail</artifactId>
     <dependencies>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-xmpp-pubsub-api</artifactId>
-            <version>1.13.0-SNAPSHOT</version>
-        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-evpn-route-service-api</artifactId>

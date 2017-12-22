@@ -16,6 +16,11 @@
             <artifactId>onos-xmpp-core-api</artifactId>
             <version>1.13.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-xmpp-pubsub-api</artifactId>
+            <version>1.13.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 

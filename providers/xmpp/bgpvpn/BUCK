@@ -1,11 +1,22 @@
 BUNDLES = [
     '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
+    '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
     '//providers/xmpp/bgpvpn/device:onos-providers-xmpp-bgpvpn-device',
     '//providers/xmpp/bgpvpn/route:onos-providers-xmpp-bgpvpn-route',
     '//providers/xmpp/bgpvpn/host:onos-providers-xmpp-bgpvpn-host',
+    '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
     '//lib:org.apache.servicemix.bundles.dom4j',
     '//lib:tinder-xmpp',
+    '//lib:stax2-api',
+    '//lib:aalto-xml',
+    '//lib:netty-common',
+    '//lib:netty-transport',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+    '//lib:concurrent-hashmap',
+    '//lib:gnu-idn',
 ]
 
 onos_app (

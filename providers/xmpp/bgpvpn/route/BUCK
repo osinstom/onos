@@ -3,6 +3,8 @@ COMPILE_DEPS = [
     '//lib:tinder-xmpp',
     '//lib:org.apache.servicemix.bundles.dom4j',
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
+    '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
+    '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
 ]
 
 TEST_DEPS = [

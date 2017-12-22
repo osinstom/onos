@@ -103,6 +103,7 @@
         <module>simplefabric</module>
         <module>contrail-poc</module>
         <module>pubsub</module>
+        <module>evpncontrail</module>
     </modules>
 
     <properties>

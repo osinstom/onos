@@ -10,5 +10,9 @@ public interface XmppPubSubController {
 
     void notify(DeviceId deviceId, EventNotification eventNotification);
 
+    void addXmppPubSubEventListener(XmppPubSubEventListener xmppPubSubEventListener);
+
+    void removeXmppPubSubEventListener(XmppPubSubEventListener xmppPubSubEventListener);
+
 
 }
