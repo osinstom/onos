@@ -13,12 +13,14 @@ import org.onosproject.net.*;
 import org.onosproject.net.device.*;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.xmpp.XmppController;
-import org.onosproject.xmpp.XmppDeviceId;
-import org.onosproject.xmpp.XmppDeviceListener;
+import org.onosproject.xmpp.core.XmppController;
+import org.onosproject.xmpp.core.XmppDeviceId;
+import org.onosproject.xmpp.core.XmppDeviceListener;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.xmpp.packet.JID;
+
+import java.net.InetSocketAddress;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -29,7 +31,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class XmppDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private final Logger logger = getLogger(getClass());
-
 
     private static final String PROVIDER = "org.onosproject.provider.xmpp.device";
     private static final String APP_NAME = "org.onosproject.xmpp";
@@ -106,7 +107,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
 
     private void connectDevice(XmppDeviceId xmppDeviceId) {
         DeviceId deviceId = DeviceId.deviceId(xmppDeviceId.id());
-
+        String ipAddress = controller.getDevice(xmppDeviceId).getIpAddress().getAddress().toString();
         // Assumption: manufacturer is uniquely identified by domain part of JID
         String manufacturer = xmppDeviceId.getJid().getDomain();
 
@@ -114,6 +115,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
 
         SparseAnnotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PROTOCOL, XMPP.toUpperCase())
+                .set("IpAddress", ipAddress)
                 .build();
         DeviceDescription deviceDescription = new DefaultDeviceDescription(
                 deviceId.uri(),

@@ -16,11 +16,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-xmpp-core-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr</artifactId>
         </dependency>
@@ -38,8 +33,10 @@
             <artifactId>tinder</artifactId>
             <version>1.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-xmpp-core-api</artifactId>
+            <version>1.13.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
-s
-
-
 </project>

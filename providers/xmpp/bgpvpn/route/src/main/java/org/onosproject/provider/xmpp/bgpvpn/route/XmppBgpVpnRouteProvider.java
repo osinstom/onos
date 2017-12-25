@@ -11,6 +11,7 @@ import org.onosproject.evpnrouteservice.*;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
@@ -33,7 +34,7 @@ import java.util.Set;
 @Component(immediate = true)
 public class XmppBgpVpnRouteProvider extends AbstractProvider  {
 
-    private static final Logger logger = LoggerFactory
+    private final Logger logger = LoggerFactory
             .getLogger(XmppBgpVpnRouteProvider.class);
 
     private static final String BGPVPN_NAMESPACE = "http://ietf.org/protocol/bgpvpn";
@@ -46,6 +47,8 @@ public class XmppBgpVpnRouteProvider extends AbstractProvider  {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppPubSubController xmppPubSubController;
+
+    private HostProviderService providerService;
 
     private InternalXmppPubSubEventListener xmppPubSubEventListener = new InternalXmppPubSubEventListener();
     private InternalEvpnRouteListener routeListener = new InternalEvpnRouteListener();
@@ -184,11 +187,12 @@ public class XmppBgpVpnRouteProvider extends AbstractProvider  {
 
     private Set<Device> getDevicesByVpn(EvpnRoute evpnRoute) {
         Set<Device> vpnDevices = Sets.newHashSet();
-        deviceService.getDevices(Device.Type.VIRTUAL).forEach( device -> {
+        deviceService.getDevices().forEach( device -> {
             evpnRoute.exportRouteTarget().forEach( vpnRouteTarget -> {
                 logger.info(vpnRouteTarget + " ? " + device.annotations().value("VPN"));
                 if(vpnRouteTarget.getRouteTarget().equals(device.annotations().value("VPN"))) {
-                    vpnDevices.add(device);
+                    if(!device.annotations().value("IpAddress").equals(evpnRoute.ipNextHop().toString()))
+                        vpnDevices.add(device);
                 }
             });
         });

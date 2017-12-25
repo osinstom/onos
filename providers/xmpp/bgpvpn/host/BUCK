@@ -1,5 +1,9 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:tinder-xmpp',
+    '//lib:org.apache.servicemix.bundles.dom4j',
+    '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
+    '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
 ]
 
 TEST_DEPS = [

@@ -46,6 +46,9 @@ public interface VpnInstanceService {
      */
     Collection<VpnInstance> getInstances();
 
+
+    boolean createInstance(VpnInstance vpnInstance);
+
     /**
      * Creates vpnInstances by vpnInstances.
      *

@@ -8,6 +8,8 @@ import org.onosproject.xmpp.core.stream.StreamError;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
+import java.net.InetSocketAddress;
+
 
 /**
  * Abstracts XMPP device.
@@ -22,6 +24,8 @@ public interface XmppDevice {
     void setChannel(Channel channel);
 
     Channel getChannel();
+
+    InetSocketAddress getIpAddress();
 
     void setManager(XmppDeviceManager manager);
 

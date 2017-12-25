@@ -59,6 +59,12 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
         xmppController.getDevice(xmppDeviceId).sendPacket(eventNotification);
     }
 
+    @Override
+    public void notify(DeviceId deviceId, XmppPubSubError error) {
+        XmppDeviceId xmppDeviceId = asXmppDeviceId(deviceId);
+        xmppController.getDevice(xmppDeviceId).sendError(error.asPacketError());
+    }
+
     private XmppDeviceId asXmppDeviceId(DeviceId deviceId) {
         String[] parts = deviceId.toString().split(":");
         JID jid = new JID(parts[1]);

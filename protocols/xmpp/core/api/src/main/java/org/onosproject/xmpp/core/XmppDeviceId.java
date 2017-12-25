@@ -1,6 +1,7 @@
 package org.onosproject.xmpp.core;
 
 import org.onlab.util.Identifier;
+import org.onosproject.net.DeviceId;
 import org.xmpp.packet.JID;
 
 import java.net.InetSocketAddress;
@@ -40,6 +41,10 @@ public final class XmppDeviceId extends Identifier<String> {
         } catch (URISyntaxException e) {
             return null;
         }
+    }
+
+    public static DeviceId asDeviceId(JID jid) {
+        return DeviceId.deviceId(XmppDeviceId.uri(jid));
     }
 
     public static URI uri(JID jid) {

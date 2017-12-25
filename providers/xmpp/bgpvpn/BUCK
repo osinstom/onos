@@ -7,6 +7,7 @@ BUNDLES = [
     '//providers/xmpp/bgpvpn/route:onos-providers-xmpp-bgpvpn-route',
     '//providers/xmpp/bgpvpn/host:onos-providers-xmpp-bgpvpn-host',
     '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
+    '//apps/evpncontrail:onos-apps-evpncontrail',
     '//lib:org.apache.servicemix.bundles.dom4j',
     '//lib:tinder-xmpp',
     '//lib:stax2-api',

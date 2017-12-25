@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.*;
 
+import java.net.InetSocketAddress;
+
 
 /**
  * Abstraction of XMPP client.
@@ -40,6 +42,11 @@ public abstract class AbstractXmppDevice extends AbstractHandlerBehaviour implem
     @Override
     public Channel getChannel() {
         return this.channel;
+    }
+
+    @Override
+    public InetSocketAddress getIpAddress() {
+        return (InetSocketAddress) this.channel.remoteAddress();
     }
 
     @Override
