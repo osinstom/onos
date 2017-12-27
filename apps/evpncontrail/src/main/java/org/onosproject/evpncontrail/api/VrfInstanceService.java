@@ -21,4 +21,6 @@ public interface VrfInstanceService {
 
     Collection<VrfInstance> getVrfInstances();
 
+    Collection<VrfInstance> getVrfInstances(String vpnName);
+
 }

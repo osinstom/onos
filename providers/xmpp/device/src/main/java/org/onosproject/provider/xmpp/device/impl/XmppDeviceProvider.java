@@ -107,7 +107,7 @@ public class XmppDeviceProvider extends AbstractProvider implements DeviceProvid
 
     private void connectDevice(XmppDeviceId xmppDeviceId) {
         DeviceId deviceId = DeviceId.deviceId(xmppDeviceId.id());
-        String ipAddress = controller.getDevice(xmppDeviceId).getIpAddress().getAddress().toString();
+        String ipAddress = controller.getDevice(xmppDeviceId).getIpAddress().getAddress().getHostAddress();
         // Assumption: manufacturer is uniquely identified by domain part of JID
         String manufacturer = xmppDeviceId.getJid().getDomain();
 

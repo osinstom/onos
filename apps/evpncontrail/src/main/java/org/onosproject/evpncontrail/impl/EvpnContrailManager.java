@@ -1,5 +1,6 @@
 package org.onosproject.evpncontrail.impl;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.*;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -9,6 +10,8 @@ import org.onosproject.evpnrouteservice.*;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.*;
@@ -51,12 +54,13 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
     protected ApplicationId appId;
 
     private InternalRouteEventListener routeEventListener = new InternalRouteEventListener();
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.evpncontrail");
         evpnRouteService.addListener(routeEventListener);
-
+        deviceService.addListener(deviceListener);
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API).register(VrfInstance.class)
                 .register(VpnInstanceId.class);
@@ -70,25 +74,28 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
     }
 
     private void initializeVpnInstances() {
-        vpnInstanceService.createInstance(createVpnInstance("blue", "65000:20"));
-        vpnInstanceService.createInstance(createVpnInstance("red", "65000:10"));
-
+        vpnInstanceService.createInstance(createVpnInstance("blue","blue", "20"));
+        vpnInstanceService.createInstance(createVpnInstance("red","red", "10"));
     }
 
-    private VpnInstance createVpnInstance(String name, String rd) {
-        VpnInstanceId vpnInstanceId = VpnInstanceId.vpnInstanceId(name);
+    private VpnInstance createVpnInstance(String instanceId, String name, String label) {
+        VpnInstanceId vpnInstanceId = VpnInstanceId.vpnInstanceId(instanceId);
         EvpnInstanceName evpnInstanceName = EvpnInstanceName.evpnName(name);
-        RouteDistinguisher routeDistinguisher = RouteDistinguisher.routeDistinguisher(rd);
+        RouteDistinguisher routeDistinguisher = RouteDistinguisher.routeDistinguisher(name + "/" + label);
         Set<VpnRouteTarget> exportRouteTargets = new HashSet<>();
+        exportRouteTargets.add(VpnRouteTarget.routeTarget(name));
         Set<VpnRouteTarget> importRouteTargets = new HashSet<>();
+        importRouteTargets.add(VpnRouteTarget.routeTarget(name));
         Set<VpnRouteTarget> configRouteTargets = new HashSet<>();
-        VpnInstance vpnInstance = new DefaultVpnInstance(vpnInstanceId, evpnInstanceName, "", routeDistinguisher, exportRouteTargets, importRouteTargets, configRouteTargets);
+        VpnInstance vpnInstance = new DefaultVpnInstance(vpnInstanceId, evpnInstanceName, "VPN with customer name '" + name +"'",
+                routeDistinguisher, exportRouteTargets, importRouteTargets, configRouteTargets);
         return vpnInstance;
     }
 
     @Deactivate
     public void deactivate() {
         evpnRouteService.removeListener(routeEventListener);
+        deviceService.removeListener(deviceListener);
         vrfInstanceStore.destroy();
         logger.info("Stopped.");
     }
@@ -99,13 +106,12 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
 
         deviceService.getAvailableDevices(Device.Type.SWITCH).forEach( device -> {
 
-
         });
     }
 
     @Override
     public void onBgpEvpnRouteDelete(EvpnRoute route) {
-
+        logger.info("onBgpEvpnRouteDelete");
     }
 
     @Override
@@ -143,7 +149,9 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
 
         VpnInstance vpnInstance = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnName));
         String id = createVrfId(vpnInstance.id().vpnInstanceId(), device.toString());
-        EvpnRouteTableId vrfId = new EvpnRouteTableId("VRF:" + id);
+        // TODO: temporary solution. Need to implement creation for new routing table id for each VPN/VRF
+        EvpnRouteTableId vrfId = new EvpnRouteTableId("evpn_ipv4");
+//        EvpnRouteTableId vrfId = new EvpnRouteTableId("VRF:" + id);
         VrfInstance vrfInstance = new DefaultVrfInstance(id, vpnInstance, device, vrfId);
         vrfInstanceStore.put(id, vrfInstance);
     }
@@ -154,6 +162,14 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
         checkNotNull(deviceId);
         String vrfId = createVrfId(vpnName, deviceId.toString());
         vrfInstanceStore.remove(vrfId, vrfInstanceStore.get(vrfId));
+    }
+
+    private void removeVrfAssociatedWithDevice(DeviceId deviceId) {
+        vrfInstanceStore.keySet().forEach(s -> {
+            if(vrfInstanceStore.get(s).device().equals(deviceId)) {
+                vrfInstanceStore.remove(s, vrfInstanceStore.get(s));
+            }
+        });
     }
 
     @Override
@@ -178,8 +194,32 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
         return vrfInstanceStore.values();
     }
 
+    @Override
+    public Collection<VrfInstance> getVrfInstances(String vpnName) {
+        Set<VrfInstance> vrfInstances = Sets.newHashSet();
+        vrfInstanceStore.values().forEach(vrfInstance -> {
+            if(vrfInstance.vpnInstance().id().vpnInstanceId().equals(vpnName))
+                vrfInstances.add(vrfInstance);
+        });
+        return vrfInstances;
+    }
+
     private String createVrfId(String vpnName, String deviceId) {
         return vpnName + "/" + deviceId;
+    }
+
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            logger.info("DeviceEvent: " + event.toString());
+            switch(event.type()) {
+                case DEVICE_REMOVED:
+                    removeVrfAssociatedWithDevice(event.subject().id());
+                    break;
+            }
+        }
     }
 
     private class InternalRouteEventListener implements EvpnRouteListener {
@@ -189,6 +229,7 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
             if (!(event.subject() instanceof EvpnRoute)) {
                 return;
             }
+            logger.info("Received: " + event.toString());
             EvpnRoute route = (EvpnRoute) event.subject();
             if (EvpnRouteEvent.Type.ROUTE_ADDED == event.type()) {
                 onBgpEvpnRouteUpdate(route);
@@ -197,5 +238,4 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
             }
         }
     }
-
 }

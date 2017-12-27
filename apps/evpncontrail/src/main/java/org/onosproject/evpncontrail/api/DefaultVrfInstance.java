@@ -1,6 +1,7 @@
 package org.onosproject.evpncontrail.api;
 
 import org.onosproject.evpnrouteservice.EvpnRouteTableId;
+import org.onosproject.evpnrouteservice.RouteDistinguisher;
 import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -39,6 +40,11 @@ public class DefaultVrfInstance implements VrfInstance {
     }
 
     @Override
+    public RouteDistinguisher routeDistinguisher() {
+        return this.vpnInstance.routeDistinguisher();
+    }
+
+    @Override
     public EvpnRouteTableId routingInstanceId() {
         return routeTableId;
     }
@@ -72,6 +78,7 @@ public class DefaultVrfInstance implements VrfInstance {
                 .add("id", id)
                 .add("vpnInstance", vpnInstance)
                 .add("device", deviceId)
+                .add("routeDistinguisher", routeDistinguisher())
                 .add("tableId", routeTableId)
                 .toString();
     }
