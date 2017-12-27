@@ -103,15 +103,12 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
     @Override
     public void onBgpEvpnRouteUpdate(EvpnRoute route) {
         logger.info("onBgpEvpnRouteUpdate");
-
-        deviceService.getAvailableDevices(Device.Type.SWITCH).forEach( device -> {
-
-        });
     }
 
     @Override
     public void onBgpEvpnRouteDelete(EvpnRoute route) {
         logger.info("onBgpEvpnRouteDelete");
+        evpnRouteStore.removeRoute(route);
     }
 
     @Override
