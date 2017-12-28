@@ -180,14 +180,23 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
         item.addAttribute("id", generateItemId(evpnRoute));
         Element entry = df.createElement("entry", BGPVPN_NAMESPACE);
         Element nlri = df.createElement("nlri");
-        nlri.addText(evpnRoute.prefixIp().address().toString());
+        Element address = df.createElement("address");
+        address.addText(evpnRoute.prefixIp().address().toString());
+        Element mac = df.createElement("mac");
+        mac.addText(evpnRoute.prefixMac().toString());
+        nlri.add(address);
+        nlri.add(mac);
+        Element nextHops = df.createElement("next-hops");
         Element nextHop = df.createElement("next-hop");
-        nextHop.addText(evpnRoute.ipNextHop().toString());
-        Element label = df.createElement("label");
-        label.addText(Integer.toString(evpnRoute.label().getLabel()));
+        Element nextHopAddr = df.createElement("address");
+        nextHopAddr.addText(evpnRoute.ipNextHop().toString());
+        Element nextHopLabel = df.createElement("label");
+        nextHopLabel.addText(Integer.toString(evpnRoute.label().getLabel()));
+        nextHop.add(nextHopAddr);
+        nextHop.add(nextHopLabel);
+        nextHops.add(nextHop);
         entry.add(nlri);
-        entry.add(nextHop);
-        entry.add(label);
+        entry.add(nextHops);
         item.add(entry);
         return item;
     }
@@ -272,22 +281,6 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
     private VpnInstance getVpnInstanceForEvpnRoute(RouteDistinguisher routeDistinguisher) {
         String vpnInstanceId = routeDistinguisher.getRouteDistinguisher().split("/")[1];
         return checkNotNull(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)));
-    }
-
-    private Set<Device> getDevicesByVpn(EvpnRoute evpnRoute) {
-        Set<Device> vpnDevices = Sets.newHashSet();
-
-        deviceService.getDevices().forEach( device -> {
-            evpnRoute.exportRouteTarget().forEach(vpnRouteTarget -> {
-                if(vrfInstanceService.getVrfInstance(vpnRouteTarget.getRouteTarget(), device.id()) != null) {
-                    logger.info("IP? " + device.annotations().value("IpAddress") + " ? " + evpnRoute.ipNextHop().toString());
-                    if(!device.annotations().value("IpAddress").equals(evpnRoute.ipNextHop().toString()))
-                        vpnDevices.add(device);
-                }
-
-            });
-        });
-        return vpnDevices;
     }
 
 }
