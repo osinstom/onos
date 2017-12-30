@@ -54,8 +54,9 @@ public class EvpnPublish {
         return nextHopAddress;
     }
 
-    public String getRouteDistinguisher(String vpnInstanceId) {
-        return String.format("%s/%s/%s/%s/%s", nextHopAddress, vpnInstanceId, nlriIpAddress, macAddress, label);
+    public String getRouteDistinguisher(String deviceId, String vpnInstanceId) {
+        return String.format("%s/%s/%s", deviceId,vpnInstanceId,label);
+//        return String.format("%s/%s/%s/%s/%s", nextHopAddress, vpnInstanceId, nlriIpAddress, macAddress, label);
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.evpncontrail.api.*;
 import org.onosproject.evpnrouteservice.*;
+import org.onosproject.evpnrouteservice.store.EvpnRouteTable;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -73,6 +74,8 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
         logger.info("Started.");
     }
 
+
+
     private void initializeVpnInstances() {
         vpnInstanceService.createInstance(createVpnInstance("blue","blue", "20"));
         vpnInstanceService.createInstance(createVpnInstance("red","red", "10"));
@@ -113,7 +116,6 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
 
     @Override
     public void onHostDetected(Host host) {
-
     }
 
     @Override
@@ -147,8 +149,9 @@ public class EvpnContrailManager implements EvpnService, VrfInstanceService {
         VpnInstance vpnInstance = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnName));
         String id = createVrfId(vpnInstance.id().vpnInstanceId(), device.toString());
         // TODO: temporary solution. Need to implement creation for new routing table id for each VPN/VRF
-        EvpnRouteTableId vrfId = new EvpnRouteTableId("evpn_ipv4");
-//        EvpnRouteTableId vrfId = new EvpnRouteTableId("VRF:" + id);
+//        EvpnRouteTableId vrfId = new EvpnRouteTableId("evpn_ipv4");
+        EvpnRouteTableId vrfId = new EvpnRouteTableId("VRF:" + id);
+
         VrfInstance vrfInstance = new DefaultVrfInstance(id, vpnInstance, device, vrfId);
         vrfInstanceStore.put(id, vrfInstance);
     }

@@ -2,7 +2,11 @@ package org.onosproject.evpncontrail.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.evpncontrail.api.EvpnService;
 import org.onosproject.evpncontrail.api.VrfInstanceService;
+import org.onosproject.evpncontrail.impl.EvpnContrailManager;
+import org.onosproject.evpnrouteservice.EvpnRouteStore;
+import org.onosproject.evpnrouteservice.store.DistributedEvpnRouteStore;
 
 /**
  *
@@ -23,6 +27,16 @@ public class VrfListCommand  extends AbstractShellCommand {
             print(FORMAT_VRF, vrfInstance.vpnInstance().vpnInstanceName().getEvpnName(),
                     vrfInstance.id(), vrfInstance.routingInstanceId().name());
         });
+
+        EvpnRouteStore store = AbstractShellCommand.get(EvpnRouteStore.class);
+        print(FORMAT_HEADER);
+        store.getRouteTables().forEach(evpnRouteTableId -> {
+            print("Routes");
+            store.getRoutes(evpnRouteTableId).forEach(evpnRouteSet -> {
+                print(FORMAT_VRF, evpnRouteSet.tableId(), evpnRouteSet.prefix());
+            });
+        });
+
     }
 
 }

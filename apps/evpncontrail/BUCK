@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//apps/route-service/api:onos-apps-route-service-api',
     '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
+    '//apps/evpn-route-service/app:onos-apps-evpn-route-service-app',
 ]
 
 TEST_DEPS = [

@@ -16,6 +16,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.xmpp.core.XmppDevice;
 import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPubSubEvent;
@@ -25,6 +26,7 @@ import org.onosproject.xmpp.pubsub.model.Publish;
 import org.onosproject.xmpp.pubsub.model.Retract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmpp.packet.JID;
 
 import javax.crypto.Mac;
 import java.util.Collections;
@@ -102,7 +104,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
                 MacAddress.valueOf(info.getMacAddress()),
                 IpPrefix.valueOf(ipAddress, 32),
                 ipNextHop,
-                info.getRouteDistinguisher(publish.getNodeID()),
+                info.getRouteDistinguisher(publish.getJIDAddress(), publish.getNodeID()),
                 null, //empty rt
                 exportRt,
                 info.getLabel());
@@ -251,11 +253,10 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     private Set<DeviceId> getDevicesToPopulateEvpnInfo(Set<VrfInstance> vrfInstancesToExportBgpInfo, EvpnRoute evpnRoute) {
         Set<DeviceId> devices = Sets.newHashSet();
-        IpAddress fromDeviceIpAddress = evpnRoute.ipNextHop();
         vrfInstancesToExportBgpInfo.forEach(vrfInstance -> {
             DeviceId deviceId = vrfInstance.device();
-            IpAddress deviceIpAddress = IpAddress.valueOf(deviceService.getDevice(deviceId).annotations().value("IpAddress"));
-            if(!deviceIpAddress.equals(fromDeviceIpAddress))
+            String fromDevice = evpnRoute.routeDistinguisher().getRouteDistinguisher().split("/")[0];
+            if(!deviceId.uri().getSchemeSpecificPart().equals(fromDevice))
                 devices.add(deviceId);
         });
         return devices;
