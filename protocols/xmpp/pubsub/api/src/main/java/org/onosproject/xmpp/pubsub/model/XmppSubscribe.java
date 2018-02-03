@@ -23,17 +23,17 @@ import org.xmpp.packet.IQ;
  */
 public class XmppSubscribe extends IQ {
 
-    private String JID;
+    private String jabberId;
     private String nodeID;
 
     public XmppSubscribe(IQ iq)  {
         super(iq.getElement());
-        this.JID = this.fromJID.toString();
+        this.jabberId = this.fromJID.toString();
         this.nodeID = this.getChildElement().element("subscribe").attribute("node").getValue();
     }
 
-    public String getJIDAddress() {
-        return this.JID;
+    public String getJabberId() {
+        return this.jabberId;
     }
 
     public String getNodeID() {

@@ -16,11 +16,16 @@
 
 package org.onosproject.xmpp.pubsub;
 
-/**
- * Allows for providers interested in XMPP PubSub events to be notified.
- */
-public interface XmppPubSubEventListener {
+import org.onosproject.xmpp.pubsub.model.XmppSubscribe;
+import org.onosproject.xmpp.pubsub.model.XmppUnsubscribe;
 
-    void handle(XmppPubSubEvent event);
+/**
+ * Allows for providers interested in XMPP Subscribe/Unsubscribe events to be notified.
+ */
+public interface XmppSubscribeEventsListener {
+
+    void handleSubscribe(XmppSubscribe subscribeEvent);
+
+    void handleUnsubscribe(XmppUnsubscribe unsubscribeEvent);
 
 }

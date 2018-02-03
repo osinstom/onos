@@ -29,8 +29,8 @@ import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.core.XmppIqListener;
 import org.onosproject.xmpp.pubsub.XmppPubSubConstants;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
-import org.onosproject.xmpp.pubsub.XmppPubSubEvent;
-import org.onosproject.xmpp.pubsub.XmppPubSubEventListener;
+import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
+import org.onosproject.xmpp.pubsub.XmppSubscribeEventsListener;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
 import org.onosproject.xmpp.pubsub.model.XmppPubSubError;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
@@ -57,26 +57,29 @@ import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_NAMESPACE;
 @Service
 public class XmppPubSubControllerImpl implements XmppPubSubController {
 
-    private static final Logger logger =
+    private static final Logger log =
             LoggerFactory.getLogger(XmppPubSubControllerImpl.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppController xmppController;
 
-    protected Set<XmppPubSubEventListener> xmppPubSubEventListeners = new CopyOnWriteArraySet<XmppPubSubEventListener>();
+    protected Set<XmppPublishEventsListener> xmppPublishEventsListeners =
+            new CopyOnWriteArraySet<XmppPublishEventsListener>();
+    protected Set<XmppSubscribeEventsListener> xmppSubscribeEventsListeners =
+            new CopyOnWriteArraySet<XmppSubscribeEventsListener>();
 
-    private InternalXmppIqListener iqListener = new InternalXmppIqListener();
+    protected XmppIqListener iqListener = new InternalXmppIqListener();
 
     @Activate
     public void activate(ComponentContext context) {
         xmppController.addXmppIqListener(iqListener);
-        logger.info("org.onosproject.xmpp.pubsub.ctl.XmppPubSubControllerImpl started.");
+        log.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
         xmppController.removeXmppIqListener(iqListener);
-        logger.info("Stopped");
+        log.info("Stopped");
     }
 
     @Override
@@ -98,20 +101,30 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
     }
 
     @Override
-    public void addXmppPubSubEventListener(XmppPubSubEventListener xmppPubSubEventListener) {
-        xmppPubSubEventListeners.add(xmppPubSubEventListener);
+    public void addXmppPublishEventsListener(XmppPublishEventsListener xmppPublishEventsListener) {
+        xmppPublishEventsListeners.add(xmppPublishEventsListener);
     }
 
     @Override
-    public void removeXmppPubSubEventListener(XmppPubSubEventListener xmppPubSubEventListener) {
-        xmppPubSubEventListeners.remove(xmppPubSubEventListener);
+    public void removeXmppPublishEventsListener(XmppPublishEventsListener xmppPublishEventsListener) {
+        xmppPublishEventsListeners.remove(xmppPublishEventsListener);
+    }
+
+    @Override
+    public void addXmppSubscribeEventsListener(XmppSubscribeEventsListener xmppSubscribeEventsListener) {
+        xmppSubscribeEventsListeners.add(xmppSubscribeEventsListener);
+    }
+
+    @Override
+    public void removeXmppSubscribeEventsListener(XmppSubscribeEventsListener xmppSubscribeEventsListener) {
+        xmppSubscribeEventsListeners.remove(xmppSubscribeEventsListener);
     }
 
     private class InternalXmppIqListener implements XmppIqListener {
         @Override
         public void handleIqStanza(IQ iq) {
-            if(isPubSub(iq)) {
-                logger.info("IQ");
+            if (isPubSub(iq)) {
+                log.info("IQ");
                 notifyListeners(iq);
             }
         }
@@ -120,38 +133,55 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
     private void notifyListeners(IQ iq) {
         XmppPubSubConstants.Method method = getMethod(iq);
         checkNotNull(method);
-        XmppPubSubEvent event = null;
-        switch(method) {
+        switch (method) {
             case SUBSCRIBE:
                 XmppSubscribe subscribe = new XmppSubscribe(iq);
-                event = new XmppPubSubEvent<>(XmppPubSubEvent.Type.SUBSCRIBE, subscribe);
+                notifyXmppSubscribe(subscribe);
                 break;
             case UNSUBSCRIBE:
                 XmppUnsubscribe unsubscribe = new XmppUnsubscribe(iq);
-                event = new XmppPubSubEvent<>(XmppPubSubEvent.Type.UNSUBSCRIBE, unsubscribe);
+                notifyXmppUnsubscribe(unsubscribe);
                 break;
             case PUBLISH:
                 XmppPublish publish = new XmppPublish(iq);
-                event = new XmppPubSubEvent<>(XmppPubSubEvent.Type.PUBLISH, publish);
+                notifyXmppPublish(publish);
                 break;
             case RETRACT:
                 XmppRetract retract = new XmppRetract(iq);
-                event = new XmppPubSubEvent<>(XmppPubSubEvent.Type.RETRACT, retract);
+                notifyXmppRetract(retract);
+                break;
+            default:
                 break;
         }
-        checkNotNull(event);
-        notifyXmppPubSubEvent(event);
     }
 
-    private void notifyXmppPubSubEvent(XmppPubSubEvent event) {
-        for(XmppPubSubEventListener listener : xmppPubSubEventListeners) {
-            listener.handle(event);
+    private void notifyXmppRetract(XmppRetract retractEvent) {
+        for (XmppPublishEventsListener listener : xmppPublishEventsListeners) {
+            listener.handleRetract(retractEvent);
+        }
+    }
+
+    private void notifyXmppPublish(XmppPublish publishEvent) {
+        for (XmppPublishEventsListener listener : xmppPublishEventsListeners) {
+            listener.handlePublish(publishEvent);
+        }
+    }
+
+    private void notifyXmppUnsubscribe(XmppUnsubscribe unsubscribeEvent) {
+        for (XmppSubscribeEventsListener listener : xmppSubscribeEventsListeners) {
+            listener.handleUnsubscribe(unsubscribeEvent);
+        }
+    }
+
+    private void notifyXmppSubscribe(XmppSubscribe subscribeEvent) {
+        for (XmppSubscribeEventsListener listener : xmppSubscribeEventsListeners) {
+            listener.handleSubscribe(subscribeEvent);
         }
     }
 
     private boolean isPubSub(IQ iq) {
         Element pubsub = iq.getElement().element(PUBSUB_ELEMENT);
-        if(pubsub!=null && pubsub.getNamespaceURI().equals(PUBSUB_NAMESPACE)) {
+        if (pubsub != null && pubsub.getNamespaceURI().equals(PUBSUB_NAMESPACE)) {
             return true;
         }
         return false;
@@ -161,7 +191,7 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
         Element pubsubElement = iq.getChildElement();
         Element methodElement = getChildElement(pubsubElement);
         String name = methodElement.getName();
-        switch(name) {
+        switch (name) {
             case "subscribe":
                 return XmppPubSubConstants.Method.SUBSCRIBE;
             case "unsubscribe":
@@ -170,8 +200,9 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
                 return XmppPubSubConstants.Method.PUBLISH;
             case "retract":
                 return XmppPubSubConstants.Method.RETRACT;
+            default:
+                break;
         }
-
         return null;
     }
 

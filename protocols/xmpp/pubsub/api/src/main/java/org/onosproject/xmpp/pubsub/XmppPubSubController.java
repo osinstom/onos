@@ -29,8 +29,12 @@ public interface XmppPubSubController {
 
     void notify(DeviceId deviceId, XmppPubSubError error);
 
-    void addXmppPubSubEventListener(XmppPubSubEventListener xmppPubSubEventListener);
+    void addXmppPublishEventsListener(XmppPublishEventsListener xmppPublishEventsListener);
 
-    void removeXmppPubSubEventListener(XmppPubSubEventListener xmppPubSubEventListener);
+    void removeXmppPublishEventsListener(XmppPublishEventsListener xmppPublishEventsListener);
+
+    void addXmppSubscribeEventsListener(XmppSubscribeEventsListener xmppSubscribeEventsListener);
+
+    void removeXmppSubscribeEventsListener(XmppSubscribeEventsListener xmppSubscribeEventsListener);
 
 }

@@ -24,7 +24,7 @@ import org.xmpp.packet.IQ;
  */
 public class XmppPublish extends IQ {
 
-    private String JID;
+    private String jabberId;
     private String nodeID;
     private Element item;
     private String itemID;
@@ -33,7 +33,7 @@ public class XmppPublish extends IQ {
 
     public XmppPublish(IQ iq) {
         super(iq.getElement());
-        this.JID = this.fromJID.toString();
+        this.jabberId = this.fromJID.toString();
         this.nodeID = this.getChildElement().element("publish").attribute("node").getValue();
         this.item = this.getChildElement().element("publish").element("item");
         this.itemID = this.item.attribute("id").getValue();
@@ -41,8 +41,8 @@ public class XmppPublish extends IQ {
         this.itemEntryNamespace = this.itemEntry.getNamespaceURI();
     }
 
-    public String getJIDAddress() {
-        return this.JID;
+    public String getJabberId() {
+        return this.jabberId;
     }
 
     public String getNodeID() {

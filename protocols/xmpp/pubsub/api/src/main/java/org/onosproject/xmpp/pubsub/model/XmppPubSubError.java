@@ -40,11 +40,11 @@ public class XmppPubSubError {
     }
 
     private PacketError.Condition matchToApplicationCondition() {
-        if(this.applicationCondition.equals(PubSubApplicationCondition.ITEM_NOT_FOUND)) {
+        if (this.applicationCondition.equals(PubSubApplicationCondition.ITEM_NOT_FOUND)) {
             // set to null, because base condition has the same value as application condition
             this.applicationCondition = null;
             return PacketError.Condition.item_not_found;
-        } else if(this.applicationCondition.equals(PubSubApplicationCondition.NOT_SUBSCRIBED)) {
+        } else if (this.applicationCondition.equals(PubSubApplicationCondition.NOT_SUBSCRIBED)) {
             return PacketError.Condition.unexpected_request;
         }
         return null;
@@ -52,8 +52,9 @@ public class XmppPubSubError {
 
     public PacketError asPacketError() {
         PacketError packetError = new PacketError(this.baseCondition);
-        if(applicationCondition!=null)
+        if (applicationCondition != null) {
             packetError.setApplicationCondition(applicationCondition.toString().toLowerCase(), PUBSUB_ERROR_NS);
+        }
         return packetError;
     }
 

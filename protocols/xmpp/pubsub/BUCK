@@ -3,6 +3,8 @@ BUNDLES = [
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
     '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
     '//lib:tinder-xmpp',
+    '//lib:concurrent-hashmap',
+    '//lib:gnu-idn',
 ]
 
 onos_app(

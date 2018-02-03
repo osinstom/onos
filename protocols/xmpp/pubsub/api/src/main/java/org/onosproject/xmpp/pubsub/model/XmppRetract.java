@@ -23,19 +23,19 @@ import org.xmpp.packet.IQ;
  */
 public class XmppRetract extends IQ {
 
-    private String JID;
+    private String jabberId;
     private String nodeID;
     private String itemID;
 
     public XmppRetract(IQ iq)  {
         super(iq.getElement());
-        this.JID = this.fromJID.toString();
+        this.jabberId = this.fromJID.toString();
         this.nodeID = this.getChildElement().element("retract").attribute("node").getValue();
         this.itemID = this.getChildElement().element("retract").element("item").attribute("id").getValue();
     }
 
-    public String getJIDAddress() {
-        return this.JID;
+    public String getJabberId() {
+        return this.jabberId;
     }
 
     public String getNodeID() {

@@ -19,11 +19,13 @@ package org.onosproject.xmpp.pubsub;
 /**
  * Constant values used across PubSub extension.
  */
-public class XmppPubSubConstants {
+public final class XmppPubSubConstants {
 
-    public final static String PUBSUB_NAMESPACE = "http://jabber.org/protocol/pubsub";
+    public static final String PUBSUB_NAMESPACE = "http://jabber.org/protocol/pubsub";
     public static final String PUBSUB_EVENT_NS = "http://jabber.org/protocol/pubsub#event";
     public static final String PUBSUB_ELEMENT = "pubsub";
+
+    private XmppPubSubConstants() {}
 
     public enum Method {
         SUBSCRIBE,

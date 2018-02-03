@@ -14,30 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.xmpp.pubsub.model;
-
-import org.xmpp.packet.IQ;
-
 /**
- * Abstracts Unsubscribe message of XMPP protocol.
+ * Package for implementation of XMPP Publish/Subscribe abstractions.
  */
-public class XmppUnsubscribe extends IQ {
-
-    private String jabberId;
-    private String nodeID;
-
-    public XmppUnsubscribe(IQ iq)  {
-        super(iq.getElement());
-        this.jabberId = this.fromJID.toString();
-        this.nodeID = this.getChildElement().element("unsubscribe").attribute("node").getValue();
-    }
-
-    public String getJabberId() {
-        return this.jabberId;
-    }
-
-    public String getNodeID() {
-        return this.nodeID;
-    }
-
-}
+package org.onosproject.xmpp.pubsub.model;
