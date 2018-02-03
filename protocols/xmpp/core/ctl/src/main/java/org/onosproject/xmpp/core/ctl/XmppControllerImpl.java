@@ -16,8 +16,10 @@
 
 package org.onosproject.xmpp.core.ctl;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -83,7 +85,7 @@ public class XmppControllerImpl implements XmppController {
     // listener declaration
     protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();
 
-    protected Set<XmppIqListener> xmppIqListeners = new CopyOnWriteArraySet<XmppIqListener>();
+    Multimap<String,XmppIqListener> xmppIqListeners = Multimaps.synchronizedSetMultimap(HashMultimap.create());
     protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
     protected Set<XmppPresenceListener> xmppPresenceListeners = new CopyOnWriteArraySet<XmppPresenceListener>();
 
@@ -135,13 +137,13 @@ public class XmppControllerImpl implements XmppController {
     }
 
     @Override
-    public void addXmppIqListener(XmppIqListener iqListener) {
-        xmppIqListeners.add(iqListener);
+    public void addXmppIqListener(XmppIqListener iqListener, String namespace) {
+        xmppIqListeners.put(namespace, iqListener);
     }
 
     @Override
-    public void removeXmppIqListener(XmppIqListener iqListener) {
-        xmppIqListeners.remove(iqListener);
+    public void removeXmppIqListener(XmppIqListener iqListener, String namespace) {
+        xmppIqListeners.remove(namespace, iqListener);
     }
 
     @Override
@@ -199,19 +201,33 @@ public class XmppControllerImpl implements XmppController {
         @Override
         public void processUpstreamEvent(XmppDeviceId deviceId, Packet packet) {
             if (packet instanceof IQ) {
-                for (XmppIqListener iqListener : xmppIqListeners) {
-                    iqListener.handleIqStanza((IQ) packet);
-                }
+                IQ iq = (IQ) packet;
+                String namespace = iq.getChildElement().getNamespace().getURI();
+                notifyIqListeners(iq, namespace);
             }
             if (packet instanceof Message) {
-                for (XmppMessageListener messageListener : xmppMessageListeners) {
-                    messageListener.handleMessageStanza((Message) packet);
-                }
+                notifyMessageListeners((Message) packet);
             }
             if (packet instanceof Presence) {
-                for (XmppPresenceListener presenceListener : xmppPresenceListeners) {
-                    presenceListener.handlePresenceStanza((Presence) packet);
-                }
+                notifyPresenceListeners((Presence) packet);
+            }
+        }
+
+        private void notifyPresenceListeners(Presence packet) {
+            for (XmppPresenceListener presenceListener : xmppPresenceListeners) {
+                presenceListener.handlePresenceStanza((Presence) packet);
+            }
+        }
+
+        private void notifyMessageListeners(Message message) {
+            for (XmppMessageListener messageListener : xmppMessageListeners) {
+                messageListener.handleMessageStanza(message);
+            }
+        }
+
+        private void notifyIqListeners(IQ iq, String namespace) {
+            for (XmppIqListener iqListener : xmppIqListeners.get(namespace)) {
+                iqListener.handleIqStanza(iq);
             }
         }
 
