@@ -18,8 +18,9 @@ package org.onosproject.xmpp.pubsub.ctl;
 
 import com.google.common.collect.Lists;
 import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.Namespace;
 import org.dom4j.tree.DefaultElement;
-import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.DeviceId;
@@ -31,6 +32,7 @@ import org.onosproject.xmpp.core.XmppIqListener;
 import org.onosproject.xmpp.core.XmppMessageListener;
 import org.onosproject.xmpp.core.XmppPresenceListener;
 import org.onosproject.xmpp.core.XmppSession;
+import org.onosproject.xmpp.pubsub.XmppPubSubConstants;
 import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
 import org.onosproject.xmpp.pubsub.XmppSubscribeEventsListener;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
@@ -39,7 +41,7 @@ import org.onosproject.xmpp.pubsub.model.XmppPublish;
 import org.onosproject.xmpp.pubsub.model.XmppRetract;
 import org.onosproject.xmpp.pubsub.model.XmppSubscribe;
 import org.onosproject.xmpp.pubsub.model.XmppUnsubscribe;
-import org.osgi.service.component.ComponentContext;
+import org.xmpp.packet.IQ;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
@@ -60,10 +62,8 @@ public class XmppPubSubControllerTest {
     XmppControllerAdapter xmppControllerAdapter;
     XmppDeviceAdapter testDevice;
 
-
     TestXmppPublishEventsListener testXmppPublishEventsListener;
     TestXmppSubscribeEventsListener testXmppSubscribeEventsListener;
-
 
     static class TestXmppPublishEventsListener implements XmppPublishEventsListener {
 
@@ -105,16 +105,12 @@ public class XmppPubSubControllerTest {
         pubSubController = new XmppPubSubControllerImpl();
         pubSubController.xmppController = xmppControllerAdapter;
         testXmppPublishEventsListener = new TestXmppPublishEventsListener();
-        pubSubController.addXmppPublishEventsListener(testXmppPublishEventsListener);
         testXmppSubscribeEventsListener = new TestXmppSubscribeEventsListener();
-        pubSubController.addXmppSubscribeEventsListener(testXmppSubscribeEventsListener);
-
+        pubSubController.activate();
     }
 
     @Test
     public void testActivate() {
-        ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
-        pubSubController.activate(mockContext);
         assertThat(xmppControllerAdapter.iqListener, is(notNullValue()));
     }
 
@@ -152,13 +148,79 @@ public class XmppPubSubControllerTest {
         assertThat(testDevice.sentErrors.size(), is(1));
     }
 
-//    @Test
-//    public void testHandlePubSubMessages() {
-//        pubSubController.addXmppPublishEventsListener(testXmppPublishEventsListener);
-//        pubSubController.addXmppSubscribeEventsListener(testXmppSubscribeEventsListener);
-//        XmppSubscribe
-//        xmppControllerAdapter.iqListener.handleIqStanza();
-//    }
+    @Test
+    public void testHandlePubSubMessages() {
+        pubSubController.addXmppPublishEventsListener(testXmppPublishEventsListener);
+        pubSubController.addXmppSubscribeEventsListener(testXmppSubscribeEventsListener);
+        XmppSubscribe xmppSubscribe = buildXmppSubscribe();
+        xmppControllerAdapter.iqListener.handleIqStanza(xmppSubscribe);
+        assertThat(testXmppSubscribeEventsListener.handledSubscribeMsgs.size(), is(1));
+        XmppUnsubscribe xmppUnsubscribe = buildXmppUnsubscribe();
+        xmppControllerAdapter.iqListener.handleIqStanza(xmppUnsubscribe);
+        assertThat(testXmppSubscribeEventsListener.handledUnsubscribeMsgs.size(), is(1));
+        XmppPublish xmppPublish = buildXmppPublish();
+        xmppControllerAdapter.iqListener.handleIqStanza(xmppPublish);
+        assertThat(testXmppPublishEventsListener.handledPublishMsgs.size(), is(1));
+        XmppRetract xmppRetract = buildXmppRetract();
+        xmppControllerAdapter.iqListener.handleIqStanza(xmppRetract);
+        assertThat(testXmppPublishEventsListener.handledRetractMsgs.size(), is(1));
+    }
+
+    private XmppSubscribe buildXmppSubscribe() {
+        IQ iq = new IQ(IQ.Type.set);
+        iq.setTo("xmpp@onosproject.org");
+        iq.setFrom("test@xmpp.org");
+        Element element = new DefaultElement("pubsub", Namespace.get(XmppPubSubConstants.PUBSUB_NAMESPACE));
+        Element childElement = new DefaultElement("subscribe");
+        childElement.addAttribute("node", "test");
+        element.add(childElement);
+        iq.setChildElement(element);
+        XmppSubscribe xmppSubscribe = new XmppSubscribe(iq);
+        return xmppSubscribe;
+    }
+
+    private XmppUnsubscribe buildXmppUnsubscribe() {
+        IQ iq = new IQ(IQ.Type.set);
+        iq.setTo("xmpp@onosproject.org");
+        iq.setFrom("test@xmpp.org");
+        Element element = new DefaultElement("pubsub", Namespace.get(XmppPubSubConstants.PUBSUB_NAMESPACE));
+        Element childElement = new DefaultElement("unsubscribe");
+        childElement.addAttribute("node", "test");
+        element.add(childElement);
+        iq.setChildElement(element);
+        XmppUnsubscribe xmppUnsubscribe = new XmppUnsubscribe(iq);
+        return xmppUnsubscribe;
+    }
+
+    private XmppPublish buildXmppPublish() {
+        IQ iq = new IQ(IQ.Type.set);
+        iq.setTo("xmpp@onosproject.org");
+        iq.setFrom("test@xmpp.org");
+        Element element = new DefaultElement("pubsub", Namespace.get(XmppPubSubConstants.PUBSUB_NAMESPACE));
+        Element publishElement = new DefaultElement("publish").addAttribute("node", "test");
+        Element itemElement = new DefaultElement("item").addAttribute("id", "id-000");
+        Element entryElement = new DefaultElement("entry", Namespace.get("jabber:test:item"));
+        itemElement.add(entryElement);
+        publishElement.add(itemElement);
+        element.add(publishElement);
+        iq.setChildElement(element);
+        XmppPublish xmppPublish = new XmppPublish(iq);
+        return xmppPublish;
+    }
+
+    private XmppRetract buildXmppRetract() {
+        IQ iq = new IQ(IQ.Type.set);
+        iq.setTo("xmpp@onosproject.org");
+        iq.setFrom("test@xmpp.org");
+        Element element = new DefaultElement("pubsub", Namespace.get(XmppPubSubConstants.PUBSUB_NAMESPACE));
+        Element retractElement = new DefaultElement("retract").addAttribute("node", "test");
+        Element itemElement = new DefaultElement("item").addAttribute("id", "id-000");
+        retractElement.add(itemElement);
+        element.add(retractElement);
+        iq.setChildElement(element);
+        XmppRetract xmppRetract = new XmppRetract(iq);
+        return xmppRetract;
+    }
 
 
     private class XmppControllerAdapter implements XmppController {

@@ -37,7 +37,6 @@ import org.onosproject.xmpp.pubsub.model.XmppPublish;
 import org.onosproject.xmpp.pubsub.model.XmppRetract;
 import org.onosproject.xmpp.pubsub.model.XmppSubscribe;
 import org.onosproject.xmpp.pubsub.model.XmppUnsubscribe;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.IQ;
@@ -71,7 +70,7 @@ public class XmppPubSubControllerImpl implements XmppPubSubController {
     protected XmppIqListener iqListener = new InternalXmppIqListener();
 
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         xmppController.addXmppIqListener(iqListener);
         log.info("Started.");
     }
