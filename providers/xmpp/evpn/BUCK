@@ -1,0 +1,22 @@
+BUNDLES = [
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
+    '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
+    '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
+    '//providers/xmpp/evpn/vrf:onos-providers-xmpp-evpn-vrf',
+    '//providers/xmpp/evpn/route:onos-providers-xmpp-evpn-route',
+    '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
+]
+
+onos_app (
+    app_name = 'org.onosproject.xmpp.evpn',
+    title = 'XMPP EVPN Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'XMPP protocol southbound provider for E-VPN.',
+    required_apps = [
+        'org.onosproject.xmpp.device',
+        'org.onosproject.protocols.xmpp.pubsub',
+    ]
+)
