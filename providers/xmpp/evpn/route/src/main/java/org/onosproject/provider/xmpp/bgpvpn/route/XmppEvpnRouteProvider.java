@@ -7,19 +7,15 @@ import org.dom4j.Element;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-import org.onosproject.evpncontrail.api.*;
 import org.onosproject.evpnrouteservice.*;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.routeserver.api.VpnInstance;
+import org.onosproject.routeserver.api.VpnInstanceId;
+import org.onosproject.routeserver.api.VpnInstanceService;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
-import org.onosproject.xmpp.pubsub.XmppPubSubEventListener;
 import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
-import org.onosproject.xmpp.pubsub.model.EventNotification;
-import org.onosproject.xmpp.pubsub.model.Publish;
-import org.onosproject.xmpp.pubsub.model.Retract;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
 import org.onosproject.xmpp.pubsub.model.XmppRetract;
@@ -48,9 +44,6 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
     protected EvpnRouteAdminService evpnRouteAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VrfInstanceService vrfInstanceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VpnInstanceService vpnInstanceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -67,6 +60,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     @Activate
     public void activate() {
+
         xmppPubSubController.addXmppPublishEventsListener(xmppPublishEventsListener);
         logger.info("Started.");
     }
@@ -77,7 +71,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
         logger.info("Stopped.");
     }
 
-    private void handlePublish(XmppPublish publish) {
+    private void updateRoute(XmppPublish publish) {
         logger.info("Handling PUBLISH");
 
         EvpnPublish info = EvpnPublish.asBgpInfo(publish);
@@ -104,7 +98,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
                 .singleton(evpnRoute));
     }
 
-    private void handleRetract(XmppRetract retract) {
+    private void withdrawRoute(XmppRetract retract) {
         logger.info("Handling RETRACT");
         EvpnRetract evpnInfo = EvpnRetract.asEvpnInfo(retract.getItemID());
         VpnInstance vpnInstance = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(retract.getNodeID()));
@@ -131,13 +125,13 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
         @Override
         public void handlePublish(XmppPublish publishEvent) {
             if (publishEvent.getItemEntryNamespace().equals(BGPVPN_NAMESPACE)) {
-                handlePublish(publishEvent);
+                updateRoute(publishEvent);
             }
         }
 
         @Override
         public void handleRetract(XmppRetract retractEvent) {
-            handleRetract(retractEvent);
+            withdrawRoute(retractEvent);
         }
 
     }
@@ -207,21 +201,21 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
                 return;
             }
 
-            Set<DeviceId> vpnDevices = getDevicesToDistributeInformation(evpnRoute);
+//            Set<DeviceId> vpnDevices = getDevicesToDistributeInformation(evpnRoute);
 
             switch (event.type()) {
                 case ROUTE_ADDED:
                 case ROUTE_UPDATED:
                     logger.info("route added");
-                    vpnDevices.forEach(deviceId -> {
-                        populateBgpUpdate(deviceId, evpnRoute);
-                    });
+//                    vpnDevices.forEach(deviceId -> {
+//                        populateBgpUpdate(deviceId, evpnRoute);
+//                    });
                     break;
                 case ROUTE_REMOVED:
                     logger.info("route deleted");
-                    vpnDevices.forEach(deviceId -> {
-                        populateBgpDelete(deviceId, evpnRoute);
-                    });
+//                    vpnDevices.forEach(deviceId -> {
+//                        populateBgpDelete(deviceId, evpnRoute);
+//                    });
                     break;
                 default:
                     break;
@@ -230,34 +224,34 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     }
 
-    private Set<DeviceId> getDevicesToDistributeInformation(EvpnRoute evpnRoute) {
-        Set<DeviceId> vpnDevices = Sets.newHashSet();
-        VpnInstance routeEvpnInstance = getVpnInstanceForEvpnRoute(evpnRoute.routeDistinguisher());
-        Set<VpnRouteTarget> exportRouteTargets = routeEvpnInstance.getExportRouteTargets();
-        Set<VpnInstance> exportVpnInstances = getVpnInstancesToExportBgpInfo(exportRouteTargets);
-        Set<VrfInstance> vrfInstancesToExportBgpInfo = getVrfInstancesToExportBgpInfo(exportVpnInstances);
-        vpnDevices = getDevicesToPopulateEvpnInfo(vrfInstancesToExportBgpInfo, evpnRoute);
-        return vpnDevices;
-    }
-
-    private Set<DeviceId> getDevicesToPopulateEvpnInfo(Set<VrfInstance> vrfInstancesToExportBgpInfo, EvpnRoute evpnRoute) {
-        Set<DeviceId> devices = Sets.newHashSet();
-        vrfInstancesToExportBgpInfo.forEach(vrfInstance -> {
-            DeviceId deviceId = vrfInstance.device();
-            String fromDevice = evpnRoute.routeDistinguisher().getRouteDistinguisher().split("/")[0];
-            if(!deviceId.uri().getSchemeSpecificPart().equals(fromDevice))
-                devices.add(deviceId);
-        });
-        return devices;
-    }
-
-    private Set<VrfInstance> getVrfInstancesToExportBgpInfo(Set<VpnInstance> exportVpnInstances) {
-        Set<VrfInstance> vrfInstances = Sets.newHashSet();
-        exportVpnInstances.forEach(vpnInstance -> {
-            vrfInstances.addAll(vrfInstanceService.getVrfInstances(vpnInstance.id().vpnInstanceId()));
-        });
-        return vrfInstances;
-    }
+//    private Set<DeviceId> getDevicesToDistributeInformation(EvpnRoute evpnRoute) {
+//        Set<DeviceId> vpnDevices = Sets.newHashSet();
+//        VpnInstance routeEvpnInstance = getVpnInstanceForEvpnRoute(evpnRoute.routeDistinguisher());
+//        Set<VpnRouteTarget> exportRouteTargets = routeEvpnInstance.getExportRouteTargets();
+//        Set<VpnInstance> exportVpnInstances = getVpnInstancesToExportBgpInfo(exportRouteTargets);
+//        Set<VrfInstance> vrfInstancesToExportBgpInfo = getVrfInstancesToExportBgpInfo(exportVpnInstances);
+//        vpnDevices = getDevicesToPopulateEvpnInfo(vrfInstancesToExportBgpInfo, evpnRoute);
+//        return vpnDevices;
+//    }
+//
+//    private Set<DeviceId> getDevicesToPopulateEvpnInfo(Set<VrfInstance> vrfInstancesToExportBgpInfo, EvpnRoute evpnRoute) {
+//        Set<DeviceId> devices = Sets.newHashSet();
+//        vrfInstancesToExportBgpInfo.forEach(vrfInstance -> {
+//            DeviceId deviceId = vrfInstance.device();
+//            String fromDevice = evpnRoute.routeDistinguisher().getRouteDistinguisher().split("/")[0];
+//            if(!deviceId.uri().getSchemeSpecificPart().equals(fromDevice))
+//                devices.add(deviceId);
+//        });
+//        return devices;
+//    }
+//
+//    private Set<VrfInstance> getVrfInstancesToExportBgpInfo(Set<VpnInstance> exportVpnInstances) {
+//        Set<VrfInstance> vrfInstances = Sets.newHashSet();
+//        exportVpnInstances.forEach(vpnInstance -> {
+//            vrfInstances.addAll(vrfInstanceService.getVrfInstances(vpnInstance.id().vpnInstanceId()));
+//        });
+//        return vrfInstances;
+//    }
 
     private Set<VpnInstance> getVpnInstancesToExportBgpInfo(Set<VpnRouteTarget> exportRouteTargets) {
         Set<VpnInstance> vpnInstances = Sets.newHashSet();

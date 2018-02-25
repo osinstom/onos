@@ -6,7 +6,7 @@ COMPILE_DEPS = [
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
     '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
     '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
-    '//apps/routeserver:onos-apps-routeserver',
+    '//providers/xmpp/evpn/route:onos-providers-xmpp-evpn-route',
 ]
 
 TEST_DEPS = [

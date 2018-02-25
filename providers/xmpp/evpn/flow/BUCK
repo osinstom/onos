@@ -1,18 +1,15 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:tinder-xmpp',
-    '//incubator/api:onos-incubator-api',
     '//lib:org.apache.servicemix.bundles.dom4j',
     '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
-    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
     '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
-    '//apps/evpncontrail:onos-apps-evpncontrail',
+    '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
-    '//core/api:onos-api-tests',
+    '//lib:TEST_ADAPTERS',
 ]
 
 osgi_jar_with_tests (

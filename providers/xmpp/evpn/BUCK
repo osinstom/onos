@@ -3,9 +3,11 @@ BUNDLES = [
     '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
     '//protocols/xmpp/pubsub/api:onos-protocols-xmpp-pubsub-api',
     '//protocols/xmpp/pubsub/ctl:onos-protocols-xmpp-pubsub-ctl',
-    '//providers/xmpp/evpn/vrf:onos-providers-xmpp-evpn-vrf',
     '//providers/xmpp/evpn/route:onos-providers-xmpp-evpn-route',
+    '//providers/xmpp/evpn/host:onos-providers-xmpp-evpn-host',
+    '//providers/xmpp/evpn/flow:onos-providers-xmpp-evpn-flow',
     '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
+    '//apps/routeserver:onos-apps-routeserver',
 ]
 
 onos_app (

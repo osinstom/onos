@@ -1,7 +1,6 @@
 package org.onosproject.provider.xmpp.bgpvpn.route;
 
 import org.dom4j.Element;
-import org.onosproject.xmpp.pubsub.model.Publish;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
 
 /**
