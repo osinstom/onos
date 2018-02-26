@@ -156,8 +156,49 @@ public class VpnInstanceManager implements VpnInstanceService {
     }
 
     @Override
-    public void updateImpExpRouteTargets(String routeTargetType,
-                                  VpnRouteTarget vpnRouteTarget) {
+    public void updateImpExpRouteTargets(RouteTargetType routeTargetType, VpnRouteTarget vpnRouteTarget, VpnInstanceId vpnInstanceId) {
 
+        VpnInstance vpnInstance = vpnInstanceStore.get(vpnInstanceId);
+        checkNotNull(vpnInstance);
+        switch(routeTargetType) {
+            case EXPORT:
+                vpnInstance.getExportRouteTargets().add(vpnRouteTarget);
+                break;
+            case IMPORT:
+                vpnInstance.getImportRouteTargets().add(vpnRouteTarget);
+                break;
+            case BOTH:
+                vpnInstance.getImportRouteTargets().add(vpnRouteTarget);
+                vpnInstance.getExportRouteTargets().add(vpnRouteTarget);
+                break;
+        }
+        logger.info("Import/Export RouteTarget policies has been updated.");
+        logger.info("Current state: " +
+                            "ExportRouteTargets:" + vpnInstance.getExportRouteTargets().toString() +
+                            "ImportRouteTargets:" + vpnInstance.getImportRouteTargets().toString());
     }
+
+    @Override
+    public void withdrawImpExpRouteTargets(RouteTargetType routeTargetType, VpnRouteTarget vpnRouteTarget, VpnInstanceId vpnInstanceId) {
+        VpnInstance vpnInstance = vpnInstanceStore.get(vpnInstanceId);
+        checkNotNull(vpnInstance);
+        switch(routeTargetType) {
+            case EXPORT:
+                vpnInstance.getExportRouteTargets().remove(vpnRouteTarget);
+                break;
+            case IMPORT:
+                vpnInstance.getImportRouteTargets().remove(vpnRouteTarget);
+                break;
+            case BOTH:
+                vpnInstance.getImportRouteTargets().remove(vpnRouteTarget);
+                vpnInstance.getExportRouteTargets().remove(vpnRouteTarget);
+                break;
+        }
+        logger.info("Import/Export RouteTarget policies has been withdrawn.");
+        logger.info("Current state: " +
+                            "ExportRouteTargets:" + vpnInstance.getExportRouteTargets().toString() +
+                            "ImportRouteTargets:" + vpnInstance.getImportRouteTargets().toString());
+    }
+
+
 }

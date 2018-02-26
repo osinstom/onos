@@ -16,9 +16,12 @@ import org.onosproject.routeserver.api.VpnInstanceId;
 import org.onosproject.routeserver.api.VpnInstanceService;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
+import org.onosproject.xmpp.pubsub.XmppSubscribeEventsListener;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
 import org.onosproject.xmpp.pubsub.model.XmppRetract;
+import org.onosproject.xmpp.pubsub.model.XmppSubscribe;
+import org.onosproject.xmpp.pubsub.model.XmppUnsubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +52,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppPubSubController xmppPubSubController;
 
-    private InternalXmppPubSubEventListener xmppPublishEventsListener =
+    private InternalXmppPubSubEventListener xmppPubSubEventsListener =
             new InternalXmppPubSubEventListener();
     private InternalEvpnRouteListener routeListener = new InternalEvpnRouteListener();
 
@@ -60,14 +63,15 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     @Activate
     public void activate() {
-
-        xmppPubSubController.addXmppPublishEventsListener(xmppPublishEventsListener);
+        xmppPubSubController.addXmppSubscribeEventsListener(xmppPubSubEventsListener);
+        xmppPubSubController.addXmppPublishEventsListener(xmppPubSubEventsListener);
         logger.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
-        xmppPubSubController.removeXmppPublishEventsListener(xmppPublishEventsListener);
+        xmppPubSubController.removeXmppSubscribeEventsListener(xmppPubSubEventsListener);
+        xmppPubSubController.removeXmppPublishEventsListener(xmppPubSubEventsListener);
         logger.info("Stopped.");
     }
 
@@ -120,7 +124,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
         }
     }
 
-    private class InternalXmppPubSubEventListener implements XmppPublishEventsListener {
+    private class InternalXmppPubSubEventListener implements XmppPublishEventsListener, XmppSubscribeEventsListener {
 
         @Override
         public void handlePublish(XmppPublish publishEvent) {
@@ -134,6 +138,31 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
             withdrawRoute(retractEvent);
         }
 
+        @Override
+        public void handleSubscribe(XmppSubscribe subscribeEvent) {
+            updateRouteTarget(subscribeEvent);
+        }
+
+        @Override
+        public void handleUnsubscribe(XmppUnsubscribe unsubscribeEvent) {
+            withdrawRouteTarget(unsubscribeEvent);
+        }
+    }
+
+    private void withdrawRouteTarget(XmppUnsubscribe unsubscribeEvent) {
+        String routeTarget = "target:" + unsubscribeEvent.getJabberId();
+        String vpnInstanceId = unsubscribeEvent.getNodeID();
+        vpnInstanceService.withdrawImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
+                                                    VpnRouteTarget.routeTarget(routeTarget),
+                                                    VpnInstanceId.vpnInstanceId(vpnInstanceId));
+    }
+
+    private void updateRouteTarget(XmppSubscribe subscribeEvent) {
+        String routeTarget = "target:" + subscribeEvent.getJabberId();
+        String vpnInstanceId = subscribeEvent.getNodeID();
+        vpnInstanceService.updateImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
+                                                    VpnRouteTarget.routeTarget(routeTarget),
+                                                    VpnInstanceId.vpnInstanceId(vpnInstanceId));
     }
 
     private void populateBgpUpdate(DeviceId deviceId, EvpnRoute evpnRoute) {

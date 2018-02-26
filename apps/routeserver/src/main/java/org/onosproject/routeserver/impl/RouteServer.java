@@ -42,8 +42,12 @@ import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
@@ -104,6 +108,9 @@ public class RouteServer implements EvpnService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -168,11 +175,17 @@ public class RouteServer implements EvpnService {
                     Set<Host> hosts = getHostsByVpn(device, route);
                     logger.info(hosts.toString());
                     for (Host h : hosts) {
+//                        FlowRule evpnFlowRule =
+//                                getEvpnFlowRule(device.id(),
+//                                                  route,
+//                                                  h);
                         ForwardingObjective.Builder objective =
-                                getEvpnFlowBuilder(device.id(),
+                                  getEvpnFlowBuilder(device.id(),
                                                   route,
                                                   h);
                         logger.info("Installing flow rule");
+//                        FlowRuleOperations ops =
+//                                FlowRuleOperations.builder().add(evpnFlowRule).build();
                         flowObjectiveService.forward(device.id(),
                                                      objective.add());
                     }
@@ -184,13 +197,27 @@ public class RouteServer implements EvpnService {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthSrc(h.mac())
                 .matchEthDst(route.prefixMac()).build();
-        TrafficTreatment build = builder.setTunnelId(route.label().getLabel())
+        TrafficTreatment treatment = builder.setTunnelId(route.label().getLabel())
                 .setIpDst(route.ipNextHop()).build();
-
         return DefaultForwardingObjective
-                .builder().withTreatment(build).withSelector(selector)
+                .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .withPriority(60000);
+    }
+
+    private FlowRule getEvpnFlowRule(DeviceId id, EvpnRoute route, Host h) {
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthSrc(h.mac())
+                .matchEthDst(route.prefixMac()).build();
+        TrafficTreatment treatment = builder.setTunnelId(route.label().getLabel())
+                .setIpDst(route.ipNextHop()).build();
+
+        return DefaultFlowRule.builder().forDevice(id)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .fromApp(appId)
+                .makePermanent().withPriority(60000).build();
     }
 
     private Set<Host> getHostsByVpn(Device device, EvpnRoute route) {

@@ -78,9 +78,19 @@ public interface VpnInstanceService {
     boolean removeInstances(Iterable<VpnInstanceId> vpnInstanceIds);
 
 
-    void updateImpExpRouteTargets(String routeTargetType,
-                                  VpnRouteTarget vpnRouteTarget);
+    enum RouteTargetType {
+        IMPORT,
+        EXPORT,
+        BOTH
+    }
 
+    void updateImpExpRouteTargets(RouteTargetType routeTargetType,
+                                  VpnRouteTarget vpnRouteTarget,
+                                  VpnInstanceId vpnInstanceId);
+
+    void withdrawImpExpRouteTargets(RouteTargetType routeTargetType,
+                                    VpnRouteTarget vpnRouteTarget,
+                                    VpnInstanceId vpnInstanceId);
 
 
 }

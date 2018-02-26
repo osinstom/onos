@@ -62,6 +62,7 @@ public class XmppEvpnFlowRuleProvider extends AbstractProvider
     @Activate
     protected void activate(ComponentContext context) {
         providerService = providerRegistry.register(this);
+        log.info(providerRegistry.getProviders().toString());
         log.info("Started.");
     }
 
@@ -97,6 +98,6 @@ public class XmppEvpnFlowRuleProvider extends AbstractProvider
 
     @Override
     public void executeBatch(FlowRuleBatchOperation batch) {
-
+        log.info("Executing batch");
     }
 }
