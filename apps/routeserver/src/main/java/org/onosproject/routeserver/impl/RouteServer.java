@@ -50,11 +50,14 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.host.HostService;
+import org.onosproject.provider.xmpp.bgpvpn.flow.XmppVpnExtensionSelector;
 import org.onosproject.routeserver.api.DefaultVpnInstance;
 import org.onosproject.routeserver.api.DefaultVrfInstance;
 import org.onosproject.routeserver.api.EvpnService;
@@ -194,11 +197,20 @@ public class RouteServer implements EvpnService {
 
     private ForwardingObjective.Builder getEvpnFlowBuilder(DeviceId id, EvpnRoute route, Host h) {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
+        ExtensionSelector extensionSelector =
+                XmppVpnExtensionSelector.buildXmppVpnExtensionSelector();
+        try {
+            extensionSelector.setPropertyValue("vpn", "blue"); // TODO: 'blue' value is hardcoded
+        } catch (ExtensionPropertyException e) {
+            logger.error("Failed to add VPN extension selector");
+        }
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthSrc(h.mac())
+                .extension(extensionSelector, id)
+                .matchIPDst(route.prefixIp())
                 .matchEthDst(route.prefixMac()).build();
         TrafficTreatment treatment = builder.setTunnelId(route.label().getLabel())
-                .setIpDst(route.ipNextHop()).build();
+                .setIpDst(route.ipNextHop())
+                .build();
         return DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).withFlag(ForwardingObjective.Flag.SPECIFIC)

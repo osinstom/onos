@@ -26,13 +26,16 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
+import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -98,6 +101,26 @@ public class XmppEvpnFlowRuleProvider extends AbstractProvider
 
     @Override
     public void executeBatch(FlowRuleBatchOperation batch) {
-        log.info("Executing batch");
+        checkNotNull(batch);
+
+        for (FlowRuleBatchEntry fbe : batch.getOperations()) {
+            XmppNotificationBuilder builder = XmppNotificationBuilder.builder(fbe.target());
+            XmppEventNotification xmppEventNotification;
+            switch (fbe.operator()) {
+                case ADD:
+                case MODIFY:
+                    xmppEventNotification = builder.buildRouteUpdate();
+                    break;
+                case REMOVE:
+                    xmppEventNotification = builder.buildRouteWithdraw();
+                    break;
+                default:
+                    log.error("Unsupported batch operation {}; skipping flowmod {}",
+                              fbe.operator(), fbe);
+                    continue;
+            }
+            xmppPubSubController.notify(batch.deviceId(), xmppEventNotification);
+        }
+
     }
 }
