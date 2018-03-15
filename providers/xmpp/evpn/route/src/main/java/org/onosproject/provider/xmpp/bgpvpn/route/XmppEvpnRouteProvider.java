@@ -151,7 +151,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     private void withdrawRouteTarget(XmppUnsubscribe unsubscribeEvent) {
         String vpnInstanceId = unsubscribeEvent.getNodeID();
-        String label = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().toString();
+        String label = String.valueOf(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().getLabel());
         String routeTarget = String.format("target/%s/%s", unsubscribeEvent.getJabberId(), label);
         vpnInstanceService.withdrawImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
                                                     VpnRouteTarget.routeTarget(routeTarget),
@@ -160,7 +160,7 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     private void updateRouteTarget(XmppSubscribe subscribeEvent) {
         String vpnInstanceId = subscribeEvent.getNodeID();
-        String label = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().toString();
+        String label = String.valueOf(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().getLabel());
         String routeTarget = String.format("target/%s/%s", subscribeEvent.getJabberId(), label);
         vpnInstanceService.updateImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
                                                     VpnRouteTarget.routeTarget(routeTarget),
