@@ -30,6 +30,7 @@ import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.routeserver.api.VpnInstanceService;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
 import org.osgi.service.component.ComponentContext;
@@ -52,6 +53,9 @@ public class XmppEvpnFlowRuleProvider extends AbstractProvider
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppPubSubController xmppPubSubController;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VpnInstanceService vpnInstanceService;
 
     private FlowRuleProviderService providerService;
 
@@ -104,7 +108,7 @@ public class XmppEvpnFlowRuleProvider extends AbstractProvider
         checkNotNull(batch);
 
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
-            XmppNotificationBuilder builder = XmppNotificationBuilder.builder(fbe.target());
+            XmppNotificationBuilder builder = XmppNotificationBuilder.builder(fbe.target(), vpnInstanceService);
             XmppEventNotification xmppEventNotification;
             switch (fbe.operator()) {
                 case ADD:

@@ -88,12 +88,12 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
         EvpnRoute.Source source = EvpnRoute.Source.LOCAL;
         List<VpnRouteTarget> exportRt = new LinkedList<>();
-        exportRt.add(VpnRouteTarget.routeTarget(publish.getNodeID()));
+        exportRt.add(info.getRouteTarget(publish.getFrom().toString()));
         EvpnRoute evpnRoute = new EvpnRoute(source,
                 MacAddress.valueOf(info.getMacAddress()),
                 IpPrefix.valueOf(ipAddress, 32),
                 ipNextHop,
-                info.getRouteDistinguisher(publish.getJabberId(), publish.getNodeID()),
+                info.getRouteDistinguisher(publish.getNodeID()),
                 null, //empty rt
                 exportRt,
                 info.getLabel());
@@ -150,16 +150,18 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
     }
 
     private void withdrawRouteTarget(XmppUnsubscribe unsubscribeEvent) {
-        String routeTarget = "target:" + unsubscribeEvent.getJabberId();
         String vpnInstanceId = unsubscribeEvent.getNodeID();
+        String label = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().toString();
+        String routeTarget = String.format("target/%s/%s", unsubscribeEvent.getJabberId(), label);
         vpnInstanceService.withdrawImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
                                                     VpnRouteTarget.routeTarget(routeTarget),
                                                     VpnInstanceId.vpnInstanceId(vpnInstanceId));
     }
 
     private void updateRouteTarget(XmppSubscribe subscribeEvent) {
-        String routeTarget = "target:" + subscribeEvent.getJabberId();
         String vpnInstanceId = subscribeEvent.getNodeID();
+        String label = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().toString();
+        String routeTarget = String.format("target/%s/%s", subscribeEvent.getJabberId(), label);
         vpnInstanceService.updateImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
                                                     VpnRouteTarget.routeTarget(routeTarget),
                                                     VpnInstanceId.vpnInstanceId(vpnInstanceId));

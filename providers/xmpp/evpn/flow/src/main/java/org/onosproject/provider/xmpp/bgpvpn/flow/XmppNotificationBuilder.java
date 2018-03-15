@@ -18,17 +18,19 @@ package org.onosproject.provider.xmpp.bgpvpn.flow;
 
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
-import org.onosproject.net.flow.Extension;
+import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
-import org.onosproject.net.flow.criteria.ExtensionCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.routeserver.api.VpnInstance;
+import org.onosproject.routeserver.api.VpnInstanceService;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  *
@@ -36,17 +38,67 @@ import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
 public class XmppNotificationBuilder {
 
     private static final String BGPVPN_NAMESPACE = "http://ietf.org/protocol/bgpvpn";
+    private static final String EVPN_AF = "5"; // it points to Evpn Route Type 5
+    private static final String EVPN_SAFI = "70"; // it points to L2VPN
+    private final VpnInstanceService vpnInstanceService;
 
     private FlowRule flowRule;
     private DocumentFactory df;
+    private XmppFlowDataBuilder.XmppFlowData xmppFlowData;
 
-    private XmppNotificationBuilder(FlowRule flowRule) {
+    private XmppNotificationBuilder(FlowRule flowRule, VpnInstanceService vpnInstanceService) {
         this.flowRule = flowRule;
+        this.vpnInstanceService = vpnInstanceService;
         this.df = DocumentFactory.getInstance();
+        this.xmppFlowData = mapAttributesToXmppFlowData();
     }
 
-    public static XmppNotificationBuilder builder(FlowRule flowRule) {
-        return new XmppNotificationBuilder(flowRule);
+    public static XmppNotificationBuilder builder(FlowRule flowRule, VpnInstanceService vpnInstanceService) {
+        return new XmppNotificationBuilder(flowRule, vpnInstanceService);
+    }
+
+    private XmppFlowDataBuilder.XmppFlowData mapAttributesToXmppFlowData() {
+        XmppFlowDataBuilder flowDataBuilder = XmppFlowDataBuilder.builder();
+        for (Criterion c : flowRule.selector().criteria()) {
+            switch (c.type()) {
+                case ETH_DST:
+                    EthCriterion ethCriterion = (EthCriterion) c;
+                    flowDataBuilder.addMacAddress(ethCriterion.mac().toString());
+                    break;
+                case IPV4_DST:
+                    IPCriterion ipCriterion = (IPCriterion) c;
+                    flowDataBuilder.addIpPrefix(ipCriterion.ip().toString());
+                    break;
+            }
+        }
+
+        for (Instruction i : flowRule.treatment().allInstructions()) {
+            switch (i.type()) {
+                case L2MODIFICATION:
+                    // add label to XmppFlowData
+                    L2ModificationInstruction.ModTunnelIdInstruction tunnelId =
+                            (L2ModificationInstruction.ModTunnelIdInstruction) i;
+                    Integer label = Math.toIntExact(tunnelId.tunnelId());
+                    flowDataBuilder.addLabel(label.toString());
+                    // add NodeId based on Label to XmppFlowData
+                    VpnInstance vpnInstance = vpnInstanceService.getInstanceByLabel(Label.label(label));
+                    try {
+                        checkNotNull(vpnInstance);
+                        String vpnInstanceName = vpnInstance.id().toString();
+                        flowDataBuilder.addNodeId(vpnInstanceName);
+                    } catch (NullPointerException ex) {
+                        // TODO: handle exception here
+                    }
+                    break;
+                case L3MODIFICATION:
+                    L3ModificationInstruction.ModIPInstruction ip =
+                            (L3ModificationInstruction.ModIPInstruction) i;
+                    flowDataBuilder.addNextHop(ip.ip().getIp4Address().toString());
+                    break;
+            }
+        }
+
+        return flowDataBuilder.build();
     }
 
     public XmppEventNotification buildRouteUpdate() {
@@ -57,7 +109,8 @@ public class XmppNotificationBuilder {
 
     private Element buildPayload() {
         Element item = df.createElement("item");
-        item.addAttribute("id", "test"); // TODO: hardcoded
+        String itemId = generateItemIdFromXmppFlowData();
+        item.addAttribute("id", itemId);
         Element entry = df.createElement("entry", BGPVPN_NAMESPACE);
         Element nlri = buildNlri();
         Element nextHop = buildNextHop();
@@ -67,59 +120,46 @@ public class XmppNotificationBuilder {
         return item;
     }
 
+    private String generateItemIdFromXmppFlowData() {
+        String itemId = String.format("%s/%s/%s/%s/%s",
+                                      xmppFlowData.getNextHop(),
+                                      xmppFlowData.getNodeId(),
+                                      xmppFlowData.getIpPrefix(),
+                                      xmppFlowData.getMacAddress(),
+                                      xmppFlowData.getLabel());
+        return itemId;
+    }
+
     private String getVpnName() {
-        ExtensionCriterion extensionCriterion =
-                (ExtensionCriterion) flowRule.selector().getCriterion(Criterion.Type.EXTENSION);
-        String vpn = "";
-        try {
-             vpn = extensionCriterion.extensionSelector().getPropertyValue("vpn");
-        } catch (ExtensionPropertyException e) {
-        }
-        return vpn;
+        return xmppFlowData.getNodeId();
     }
 
     private Element buildNlri() {
         Element nlri = df.createElement("nlri");
-        for (Criterion c : flowRule.selector().criteria()) {
-            switch (c.type()) {
-                case ETH_DST:
-                    EthCriterion ethCriterion = (EthCriterion) c;
-                    Element mac = df.createElement("mac");
-                    mac.addText(ethCriterion.mac().toString());
-                    nlri.add(mac);
-                    break;
-                case IPV4_DST:
-                    IPCriterion ipCriterion = (IPCriterion) c;
-                    Element address = df.createElement("address");
-                    address.addText(ipCriterion.ip().toString());
-                    nlri.add(address);
-                    break;
-            }
-        }
+        Element af = df.createElement("af");
+        af.addText(EVPN_AF);
+        Element safi = df.createElement("safi");
+        safi.addText(EVPN_SAFI);
+        Element mac = df.createElement("mac");
+        mac.addText(xmppFlowData.getMacAddress());
+        Element address = df.createElement("address");
+        address.addText(xmppFlowData.getIpPrefix());
+        nlri.add(af);
+        nlri.add(safi);
+        nlri.add(mac);
+        nlri.add(address);
         return nlri;
     }
 
     private Element buildNextHop() {
         Element nextHops = df.createElement("next-hops");
         Element nextHop = df.createElement("next-hop");
-        for (Instruction i : flowRule.treatment().allInstructions()) {
-            switch (i.type()) {
-                case L2MODIFICATION:
-                    L2ModificationInstruction.ModTunnelIdInstruction tunnelId =
-                            (L2ModificationInstruction.ModTunnelIdInstruction) i;
-                    Element nextHopLabel = df.createElement("label");
-                    nextHopLabel.addText(Long.toString(tunnelId.tunnelId()));
-                    nextHop.add(nextHopLabel);
-                    break;
-                case L3MODIFICATION:
-                    L3ModificationInstruction.ModIPInstruction ip =
-                            (L3ModificationInstruction.ModIPInstruction) i;
-                    Element nextHopAddr = df.createElement("address");
-                    nextHopAddr.addText(ip.ip().getIp4Address().toString());
-                    nextHop.add(nextHopAddr);
-                    break;
-            }
-        }
+        Element nextHopLabel = df.createElement("label");
+        nextHopLabel.addText(xmppFlowData.getLabel());
+        nextHop.add(nextHopLabel);
+        Element nextHopAddr = df.createElement("address");
+        nextHopAddr.addText(xmppFlowData.getNextHop());
+        nextHop.add(nextHopAddr);
         nextHops.add(nextHop);
         return nextHops;
     }

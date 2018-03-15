@@ -1,6 +1,7 @@
 package org.onosproject.provider.xmpp.bgpvpn.route;
 
 import org.dom4j.Element;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
 
 /**
@@ -54,9 +55,12 @@ public class EvpnPublish {
         return nextHopAddress;
     }
 
-    public String getRouteDistinguisher(String deviceId, String vpnInstanceId) {
-        return String.format("%s/%s/%s", deviceId,vpnInstanceId,label);
-//        return String.format("%s/%s/%s/%s/%s", nextHopAddress, vpnInstanceId, nlriIpAddress, macAddress, label);
+    public String getRouteDistinguisher(String vpnInstanceId) {
+        return String.format("%s/%s/%s/%s/%s", nextHopAddress, vpnInstanceId, nlriIpAddress, macAddress, label);
+    }
+
+    public VpnRouteTarget getRouteTarget(String deviceId) {
+        return VpnRouteTarget.routeTarget(String.format("%s/%s", deviceId, this.label));
     }
 
     @Override
@@ -84,5 +88,6 @@ public class EvpnPublish {
         int label = Integer.parseInt(nextHop.element("label").getStringValue());
         return new EvpnPublish(label, nlriAf, nlriSafi, macAddress, ipAddress, nextHopAf, nextHopIpAddress);
     }
+
 
 }

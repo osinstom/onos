@@ -17,6 +17,7 @@
 package org.onosproject.routeserver.api;
 
 import org.onosproject.evpnrouteservice.EvpnInstanceName;
+import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.RouteDistinguisher;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
@@ -75,6 +76,12 @@ public interface VpnInstance {
      * @return config route target information.
      */
     Set<VpnRouteTarget> getConfigRouteTargets();
+
+    /**
+     * Returns the label associated with VPN instance.
+     * @return Label number
+     */
+    Label label();
 
 
 }

@@ -17,6 +17,7 @@
 package org.onosproject.routeserver.api;
 
 
+import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
 import java.util.Collection;
@@ -41,6 +42,14 @@ public interface VpnInstanceService {
      * @return VpnInstance or null if one with the given ID is not know.
      */
     VpnInstance getInstance(VpnInstanceId vpnInstanceId);
+
+    /**
+     * Returns the vpnInstance.
+     *
+     * @param label Label number
+     * @return VpnInstance or null if one with the given Label is not known.
+     */
+    VpnInstance getInstanceByLabel(Label label);
 
     /**
      * Returns the collection of the currently known vpnInstance.

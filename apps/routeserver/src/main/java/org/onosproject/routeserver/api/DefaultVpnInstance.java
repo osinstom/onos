@@ -17,6 +17,7 @@
 package org.onosproject.routeserver.api;
 
 import org.onosproject.evpnrouteservice.EvpnInstanceName;
+import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.RouteDistinguisher;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
@@ -37,6 +38,7 @@ public class DefaultVpnInstance implements VpnInstance {
     private final Set<VpnRouteTarget> exportRtSet;
     private final Set<VpnRouteTarget> importRtSet;
     private final Set<VpnRouteTarget> configRtSet;
+    private final Label label;
 
 
     /**
@@ -55,7 +57,8 @@ public class DefaultVpnInstance implements VpnInstance {
                               RouteDistinguisher routeDistinguisher,
                               Set<VpnRouteTarget> exportRtSet,
                               Set<VpnRouteTarget> importRtSet,
-                              Set<VpnRouteTarget> configRtSet) {
+                              Set<VpnRouteTarget> configRtSet,
+                              Label label) {
         this.id = checkNotNull(id);
         this.name = checkNotNull(instanceName);
         this.description = checkNotNull(description);
@@ -63,6 +66,7 @@ public class DefaultVpnInstance implements VpnInstance {
         this.exportRtSet = checkNotNull(exportRtSet);
         this.importRtSet = checkNotNull(importRtSet);
         this.configRtSet = checkNotNull(configRtSet);
+        this.label = checkNotNull(label);
     }
 
     @Override
@@ -99,6 +103,9 @@ public class DefaultVpnInstance implements VpnInstance {
     public Set<VpnRouteTarget> getConfigRouteTargets() {
         return configRtSet;
     }
+
+    @Override
+    public Label label() { return label; }
 
     @Override
     public int hashCode() {

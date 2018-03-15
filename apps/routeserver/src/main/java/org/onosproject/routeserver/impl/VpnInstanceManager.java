@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
 import org.onosproject.routeserver.api.VpnInstance;
 import org.onosproject.routeserver.api.VpnInstanceId;
@@ -89,6 +90,20 @@ public class VpnInstanceManager implements VpnInstanceService {
     public VpnInstance getInstance(VpnInstanceId vpnInstanceId) {
         checkNotNull(vpnInstanceId);
         return vpnInstanceStore.get(vpnInstanceId);
+    }
+
+    @Override
+    public VpnInstance getInstanceByLabel(Label label) {
+        checkNotNull(label);
+        VpnInstance instanceWithLabel = null;
+        for (VpnInstance vpnInstance : vpnInstanceStore.values()) {
+            logger.info("Analyzing vpnInstance with label {}, vs. label {}", vpnInstance.label(), label);
+            if (vpnInstance.label().equals(label)) {
+                instanceWithLabel = vpnInstance;
+            }
+        }
+        logger.info("Returning VPN Instance with name {}", instanceWithLabel.vpnInstanceName());
+        return instanceWithLabel;
     }
 
     @Override

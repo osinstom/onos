@@ -110,6 +110,7 @@ public class XmppEvpnHostProvider extends AbstractProvider implements HostProvid
         public void handleRetract(XmppRetract retractEvent) {
             removeHost(retractEvent);
         }
+
     }
 
     private void removeHost(XmppRetract retract) {
