@@ -188,12 +188,32 @@ public class RouteServer implements EvpnService {
         deviceService.getAvailableDevices()
                 .forEach(device -> {
                     logger.info("switch device is found");
-                    Set<Host> hosts = getHostsByVpn(device, route);
-                    logger.info(hosts.toString());
-                    for (Host h : hosts) {
-                            sendUpdate(device.id(), route);
+
+                    List<VpnRouteTarget> routeTargets = route.exportRouteTarget();
+                    VpnInstance vpn = getVpnByRouteDistinguisher(route.routeDistinguisher());
+                    Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
+                    routeTargets.retainAll(vpnRouteTargets);
+                    logger.info("RT to notify, " + routeTargets);
+                    if (shouldNotifyRoute(routeTargets, device.id())) {
+                        sendUpdate(device.id(), route);
                     }
                 });
+    }
+
+    private VpnInstance getVpnByRouteDistinguisher(RouteDistinguisher routeDistinguisher) {
+        for (VpnInstance vpnInstance : vpnInstanceService.getInstances()) {
+            if (isCorrespondingRouteDistinguisher(vpnInstance.routeDistinguisher(), routeDistinguisher)) {
+                return vpnInstance;
+            }
+        }
+        return null;
+    }
+
+    private boolean isCorrespondingRouteDistinguisher(RouteDistinguisher vpnRd, RouteDistinguisher routeRd) {
+        String[] vpnRds = vpnRd.getRouteDistinguisher().split("/");
+        String vpnName = vpnRds[0];
+        String label = vpnRds[1];
+        return routeRd.getRouteDistinguisher().contains(vpnName) && routeRd.getRouteDistinguisher().contains(label);
     }
 
 
