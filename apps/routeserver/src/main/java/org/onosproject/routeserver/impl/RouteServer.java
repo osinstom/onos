@@ -380,7 +380,7 @@ public class RouteServer implements EvpnService {
 
     private boolean shouldNotifyRoute(List<VpnRouteTarget> routeTargets, DeviceId deviceId) {
         logger.info("Analyzing " + routeTargets.get(0) + " " + deviceId.uri().getSchemeSpecificPart());
-        return routeTargets.get(0).getRouteTarget().contains(deviceId.uri().getSchemeSpecificPart());
+        return !routeTargets.get(0).getRouteTarget().contains(deviceId.uri().getSchemeSpecificPart());
     }
 
 }
