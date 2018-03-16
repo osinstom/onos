@@ -47,7 +47,7 @@ public class RouteListCommand  extends AbstractShellCommand {
                     print(FORMAT_ROUTES, evpnRouteSet.tableId().name(),
                           evpnRoute.prefixIp().address().toString(),
                           evpnRoute.ipNextHop().toString(),
-                          evpnRoute.routeDistinguisher(),
+                          evpnRoute.routeDistinguisher().getRouteDistinguisher(),
                           evpnRoute.exportRouteTarget(),
                           evpnRoute.importRouteTarget());
                 });

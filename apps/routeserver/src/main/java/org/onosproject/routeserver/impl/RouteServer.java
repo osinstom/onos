@@ -191,34 +191,21 @@ public class RouteServer implements EvpnService {
                     Set<Host> hosts = getHostsByVpn(device, route);
                     logger.info(hosts.toString());
                     for (Host h : hosts) {
-
-                            ForwardingObjective.Builder objective =
-                                    getEvpnFlowBuilder(device.id(),
-                                                       route,
-                                                       h);
-                            logger.info("Installing route");
-                            flowObjectiveService.forward(device.id(),
-                                                         objective.add());
-
+                            sendUpdate(device.id(), route);
                     }
                 });
     }
 
-//    private boolean shouldNotify(EvpnRoute route, Host h) {
-//        // check which VPN EvpnRoute points to
-//        // check if Host and EvpnRoute are related to the same VPN
-//        // check if RouteTarget of VPN is contains Device which Host is attached to
-//        VpnInstance vpnInstance = vpnInstanceService.getInstanceByLabel(route.label());
-//        String hostsVpn = h.annotations().value("vpn-instance");
-//        vpnInstance.getExportRouteTargets();
-//
-//        if (vpnInstance.vpnInstanceName().getEvpnName().equals(hostsVpn)) {
-//
-//        }
-//
-//    }
 
-    private ForwardingObjective.Builder getEvpnFlowBuilder(DeviceId id, EvpnRoute route, Host h) {
+    private void sendUpdate(DeviceId deviceId, EvpnRoute evpnRoute) {
+        ForwardingObjective.Builder objective =
+                getEvpnFlowBuilder(evpnRoute);
+        logger.info("Installing route");
+        flowObjectiveService.forward(deviceId,
+                                     objective.add());
+    }
+
+    private ForwardingObjective.Builder getEvpnFlowBuilder(EvpnRoute route) {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -369,7 +356,6 @@ public class RouteServer implements EvpnService {
     }
 
     private class InternalVpnInstanceListener implements VpnInstanceListener {
-
         @Override
         public void event(VpnInstanceEvent event) {
             notifyEvpnRoutes(event.subject(), event.device());
@@ -384,7 +370,17 @@ public class RouteServer implements EvpnService {
                 Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
                 routeTargets.retainAll(vpnRouteTargets);
                 logger.info("RT to notify, " + routeTargets);
+                // if routeTargets do not point to device, notify route
+                if (shouldNotifyRoute(routeTargets, device.id())) {
+                    sendUpdate(device.id(), evpnRoute);
+                }
             });
         });
     }
+
+    private boolean shouldNotifyRoute(List<VpnRouteTarget> routeTargets, DeviceId deviceId) {
+        logger.info("Analyzing %s, %s", routeTargets.get(0), deviceId.uri().getSchemeSpecificPart());
+        return routeTargets.get(0).getRouteTarget().contains(deviceId.uri().getSchemeSpecificPart());
+    }
+
 }
