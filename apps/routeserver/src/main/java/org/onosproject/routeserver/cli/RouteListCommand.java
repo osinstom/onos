@@ -32,8 +32,8 @@ import java.util.Collection;
 public class RouteListCommand  extends AbstractShellCommand {
 
     private static final String FORMAT_HEADER =
-            "   VPN name            Prefix         Next Hop";
-    public static final String FORMAT_ROUTES = "   %-18s %-15s %-10s";
+            "   VPN name            Prefix         Next Hop      RouteDistinguisher   ExportRouteTargets      ImportRouteTargets";
+    public static final String FORMAT_ROUTES = "   %-18s %-15s %-10s %-10s %-10s";
 
     @Override
     protected void execute() {
@@ -45,7 +45,11 @@ public class RouteListCommand  extends AbstractShellCommand {
             routeSet.forEach(evpnRouteSet -> {
                 evpnRouteSet.routes().forEach(evpnRoute -> {
                     print(FORMAT_ROUTES, evpnRouteSet.tableId().name(),
-                            evpnRoute.prefixIp().address().toString(), evpnRoute.ipNextHop().toString());
+                          evpnRoute.prefixIp().address().toString(),
+                          evpnRoute.ipNextHop().toString(),
+                          evpnRoute.routeDistinguisher(),
+                          evpnRoute.exportRouteTarget(),
+                          evpnRoute.importRouteTarget());
                 });
 
             });

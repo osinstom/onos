@@ -60,7 +60,7 @@ public class EvpnPublish {
     }
 
     public VpnRouteTarget getRouteTarget(String deviceId) {
-        return VpnRouteTarget.routeTarget(String.format("%s/%s", deviceId, this.label));
+        return VpnRouteTarget.routeTarget(String.format("target/%s/%s", deviceId, this.label));
     }
 
     @Override
