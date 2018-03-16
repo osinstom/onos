@@ -185,12 +185,13 @@ public class RouteServer implements EvpnService {
                     logger.info("switch device is found");
 
                     List<VpnRouteTarget> routeTargets = route.exportRouteTarget();
+                    logger.info("Route RT: " + routeTargets);
                     VpnInstance vpn = getVpnByRouteDistinguisher(route.routeDistinguisher());
                     Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
                     logger.info("VPN Import targets: " + vpnRouteTargets);
-                    routeTargets.removeAll(vpnRouteTargets);
-                    logger.info("RT to notify, " + routeTargets);
-                    if (!shouldNotifyRoute(routeTargets, device.id())) {
+                    vpnRouteTargets.removeAll(routeTargets);
+                    logger.info("RT to notify, " + vpnRouteTargets);
+                    if (shouldNotifyRoute(routeTargets, device.id())) {
                         sendUpdate(device.id(), route);
                     }
                 });
