@@ -25,11 +25,19 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
+import org.onosproject.event.ListenerService;
 import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
+import org.onosproject.net.Device;
 import org.onosproject.routeserver.api.VpnInstance;
 import org.onosproject.routeserver.api.VpnInstanceId;
 import org.onosproject.routeserver.api.VpnInstanceService;
+import org.onosproject.routeserver.store.VpnInstanceEvent;
+import org.onosproject.routeserver.store.VpnInstanceListener;
+import org.onosproject.routeserver.store.VpnInstanceStore;
+import org.onosproject.routeserver.store.VpnInstanceStoreDelegate;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
@@ -39,6 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,52 +61,50 @@ public class VpnInstanceManager implements VpnInstanceService {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected EventuallyConsistentMap<VpnInstanceId, VpnInstance> vpnInstanceStore;
-    protected ApplicationId appId;
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VpnInstanceStore store;
+
+    protected Set<VpnInstanceListener> listeners = new HashSet<>();
+
+    private final VpnInstanceStoreDelegate vpnInstanceStoreDelegate = new
+            InternalVpnInstanceStoreDelegate();
+
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onosproject.evpncontrail");
-        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API).register(VpnInstance.class)
-                .register(VpnInstanceId.class);
-        vpnInstanceStore = storageService
-                .<VpnInstanceId, VpnInstance>eventuallyConsistentMapBuilder()
-                .withName("vpn-instance-store").withSerializer(serializer)
-                .withTimestampProvider((k, v) -> new WallClockTimestamp())
-                .build();
+        store.setDelegate(vpnInstanceStoreDelegate);
         logger.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
-        vpnInstanceStore.destroy();
+        store.unsetDelegate(vpnInstanceStoreDelegate);
+        logger.info("Stopped");
     }
 
 
     @Override
     public boolean exists(VpnInstanceId vpnInstanceId) {
         checkNotNull(vpnInstanceId);
-        return vpnInstanceStore.containsKey(vpnInstanceId);
+        return store.getVpnInstance(vpnInstanceId)!=null;
     }
 
     @Override
     public VpnInstance getInstance(VpnInstanceId vpnInstanceId) {
         checkNotNull(vpnInstanceId);
-        return vpnInstanceStore.get(vpnInstanceId);
+        return store.getVpnInstance(vpnInstanceId);
     }
 
     @Override
     public VpnInstance getInstanceByLabel(Label label) {
         checkNotNull(label);
         VpnInstance instanceWithLabel = null;
-        for (VpnInstance vpnInstance : vpnInstanceStore.values()) {
+        for (VpnInstance vpnInstance : store.getVpnInstances()) {
             logger.info("Analyzing vpnInstance with label {}, vs. label {}", vpnInstance.label(), label);
             if (vpnInstance.label().equals(label)) {
                 instanceWithLabel = vpnInstance;
@@ -108,18 +116,13 @@ public class VpnInstanceManager implements VpnInstanceService {
 
     @Override
     public Collection<VpnInstance> getInstances() {
-        return Collections.unmodifiableCollection(vpnInstanceStore.values());
+        return store.getVpnInstances();
     }
 
     @Override
     public boolean createInstance(VpnInstance vpnInstance) {
         checkNotNull(vpnInstance);
-        vpnInstanceStore.put(vpnInstance.id(), vpnInstance);
-        if (!vpnInstanceStore.containsKey(vpnInstance.id())) {
-            logger.info("Vpn Instance creation failed",
-                    vpnInstance.id().toString());
-            return false;
-        }
+        store.createVpnInstance(vpnInstance.id(), vpnInstance);
         return true;
     }
 
@@ -128,12 +131,7 @@ public class VpnInstanceManager implements VpnInstanceService {
         checkNotNull(vpnInstances);
         for (VpnInstance vpnInstance : vpnInstances) {
             logger.info("EVPN instance ID is  {} ", vpnInstance.id().toString());
-            vpnInstanceStore.put(vpnInstance.id(), vpnInstance);
-            if (!vpnInstanceStore.containsKey(vpnInstance.id())) {
-                logger.info("Vpn Instance creation failed",
-                        vpnInstance.id().toString());
-                return false;
-            }
+            store.createVpnInstance(vpnInstance.id(), vpnInstance);
         }
         return true;
     }
@@ -141,39 +139,20 @@ public class VpnInstanceManager implements VpnInstanceService {
     @Override
     public boolean updateInstances(Iterable<VpnInstance> vpnInstances) {
         checkNotNull(vpnInstances);
-        for (VpnInstance vpnInstance : vpnInstances) {
-            if (!vpnInstanceStore.containsKey(vpnInstance.id())) {
-                logger.info("Vpn Instance not exists",
-                        vpnInstance.id().toString());
-                return false;
-            }
-            vpnInstanceStore.put(vpnInstance.id(), vpnInstance);
-            if (!vpnInstance.equals(vpnInstanceStore.get(vpnInstance.id()))) {
-                logger.info("Vpn Instance update failed",
-                        vpnInstance.id().toString());
-                return false;
-            }
-        }
+        createInstances(vpnInstances);
         return true;
     }
 
     @Override
     public boolean removeInstances(Iterable<VpnInstanceId> vpnInstanceIds) {
         checkNotNull(vpnInstanceIds);
-        for (VpnInstanceId vpnInstanceId : vpnInstanceIds) {
-            vpnInstanceStore.remove(vpnInstanceId);
-            if (vpnInstanceStore.containsKey(vpnInstanceId)) {
-                logger.info("Vpn Instance delete failed", vpnInstanceId.toString());
-                return false;
-            }
-        }
+        // TODO: not implemented
         return true;
     }
 
     @Override
     public void updateImpExpRouteTargets(RouteTargetType routeTargetType, VpnRouteTarget vpnRouteTarget, VpnInstanceId vpnInstanceId) {
-
-        VpnInstance vpnInstance = vpnInstanceStore.get(vpnInstanceId);
+        VpnInstance vpnInstance = store.getVpnInstance(vpnInstanceId);
         checkNotNull(vpnInstance);
         switch(routeTargetType) {
             case EXPORT:
@@ -195,7 +174,7 @@ public class VpnInstanceManager implements VpnInstanceService {
 
     @Override
     public void withdrawImpExpRouteTargets(RouteTargetType routeTargetType, VpnRouteTarget vpnRouteTarget, VpnInstanceId vpnInstanceId) {
-        VpnInstance vpnInstance = vpnInstanceStore.get(vpnInstanceId);
+        VpnInstance vpnInstance = store.getVpnInstance(vpnInstanceId);
         checkNotNull(vpnInstance);
         switch(routeTargetType) {
             case EXPORT:
@@ -215,5 +194,37 @@ public class VpnInstanceManager implements VpnInstanceService {
                             "ImportRouteTargets:" + vpnInstance.getImportRouteTargets().toString());
     }
 
+    @Override
+    public void attachDevice(VpnInstanceId vpnInstanceId, Device device) {
+        store.attachDeviceToVpn(vpnInstanceId, device);
+    }
 
+    @Override
+    public void detachDevice(VpnInstanceId vpnInstanceId, Device device) {
+        store.detachDeviceFromVpn(vpnInstanceId, device);
+    }
+
+
+    @Override
+    public void addListener(VpnInstanceListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(VpnInstanceListener listener) {
+        listeners.remove(listener);
+    }
+
+    private class InternalVpnInstanceStoreDelegate implements VpnInstanceStoreDelegate {
+        @Override
+        public void notify(VpnInstanceEvent event) {
+            post(event);
+        }
+    }
+
+    protected void post(VpnInstanceEvent event) {
+        for(VpnInstanceListener l : listeners) {
+            l.event(event);
+        }
+    }
 }

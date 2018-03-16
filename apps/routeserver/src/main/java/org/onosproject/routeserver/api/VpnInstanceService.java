@@ -17,8 +17,12 @@
 package org.onosproject.routeserver.api;
 
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
+import org.onosproject.net.Device;
+import org.onosproject.routeserver.store.VpnInstanceEvent;
+import org.onosproject.routeserver.store.VpnInstanceListener;
 
 import java.util.Collection;
 import java.util.Set;
@@ -26,7 +30,7 @@ import java.util.Set;
 /**
  * Service for interacting with the inventory of VPN instance.
  */
-public interface VpnInstanceService {
+public interface VpnInstanceService extends ListenerService<VpnInstanceEvent, VpnInstanceListener> {
     /**
      * Returns if the vpnInstance is existed.
      *
@@ -101,5 +105,8 @@ public interface VpnInstanceService {
                                     VpnRouteTarget vpnRouteTarget,
                                     VpnInstanceId vpnInstanceId);
 
+    void attachDevice(VpnInstanceId vpnInstanceId, Device device);
+
+    void detachDevice(VpnInstanceId vpnInstanceId, Device device);
 
 }

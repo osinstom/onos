@@ -8,12 +8,15 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.evpnrouteservice.*;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeserver.api.VpnInstance;
 import org.onosproject.routeserver.api.VpnInstanceId;
 import org.onosproject.routeserver.api.VpnInstanceService;
+import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
 import org.onosproject.xmpp.pubsub.XmppSubscribeEventsListener;
@@ -51,6 +54,9 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected XmppPubSubController xmppPubSubController;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     private InternalXmppPubSubEventListener xmppPubSubEventsListener =
             new InternalXmppPubSubEventListener();
@@ -141,12 +147,28 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
         @Override
         public void handleSubscribe(XmppSubscribe subscribeEvent) {
             updateRouteTarget(subscribeEvent);
+            registerDevice(subscribeEvent);
         }
 
         @Override
         public void handleUnsubscribe(XmppUnsubscribe unsubscribeEvent) {
             withdrawRouteTarget(unsubscribeEvent);
+            unregisterDevice(unsubscribeEvent);
         }
+    }
+
+    private void unregisterDevice(XmppUnsubscribe unsubscribeEvent) {
+        VpnInstanceId vpnInstanceId = VpnInstanceId.vpnInstanceId(unsubscribeEvent.getNodeID());
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(unsubscribeEvent.getJabberId()));
+        Device device = deviceService.getDevice(deviceId);
+        vpnInstanceService.detachDevice(vpnInstanceId, device);
+    }
+
+    private void registerDevice(XmppSubscribe subscribeEvent) {
+        VpnInstanceId vpnInstanceId = VpnInstanceId.vpnInstanceId(subscribeEvent.getNodeID());
+        DeviceId deviceId = DeviceId.deviceId(XmppDeviceId.uri(subscribeEvent.getJabberId()));
+        Device device = deviceService.getDevice(deviceId);
+        vpnInstanceService.attachDevice(vpnInstanceId, device);
     }
 
     private void withdrawRouteTarget(XmppUnsubscribe unsubscribeEvent) {

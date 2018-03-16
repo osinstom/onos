@@ -51,16 +51,12 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.ExtensionSelector;
-import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.host.HostService;
 import org.onosproject.routeserver.api.DefaultVpnInstance;
 import org.onosproject.routeserver.api.DefaultVrfInstance;
@@ -69,6 +65,8 @@ import org.onosproject.routeserver.api.VpnInstance;
 import org.onosproject.routeserver.api.VpnInstanceId;
 import org.onosproject.routeserver.api.VpnInstanceService;
 import org.onosproject.routeserver.api.VrfInstance;
+import org.onosproject.routeserver.store.VpnInstanceEvent;
+import org.onosproject.routeserver.store.VpnInstanceListener;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
@@ -81,6 +79,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.CharMatcher.any;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -132,12 +131,14 @@ public class RouteServer implements EvpnService {
 
     private InternalRouteEventListener routeEventListener = new InternalRouteEventListener();
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
+    private VpnInstanceListener vpnInstanceListener = new InternalVpnInstanceListener();
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.routeserver");
         evpnRouteService.addListener(routeEventListener);
         deviceService.addListener(deviceListener);
+        vpnInstanceService.addListener(vpnInstanceListener);
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API).register(VrfInstance.class)
                 .register(VpnInstanceId.class);
@@ -165,9 +166,7 @@ public class RouteServer implements EvpnService {
         Label vpnLabel = generateVpnLabel();
         RouteDistinguisher routeDistinguisher = RouteDistinguisher.routeDistinguisher(name + "/" + vpnLabel.getLabel());
         Set<VpnRouteTarget> exportRouteTargets = new HashSet<>();
-        exportRouteTargets.add(VpnRouteTarget.routeTarget(name));
         Set<VpnRouteTarget> importRouteTargets = new HashSet<>();
-        importRouteTargets.add(VpnRouteTarget.routeTarget(name));
         Set<VpnRouteTarget> configRouteTargets = new HashSet<>();
         VpnInstance vpnInstance = new DefaultVpnInstance(vpnInstanceId, evpnInstanceName, "VPN with customer name '" + name +"'",
                                                          routeDistinguisher, exportRouteTargets, importRouteTargets, configRouteTargets, vpnLabel);
@@ -176,6 +175,7 @@ public class RouteServer implements EvpnService {
 
     @Deactivate
     public void deactivate() {
+        vpnInstanceService.removeListener(vpnInstanceListener);
         evpnRouteService.removeListener(routeEventListener);
         deviceService.removeListener(deviceListener);
         vrfInstanceStore.destroy();
@@ -191,16 +191,32 @@ public class RouteServer implements EvpnService {
                     Set<Host> hosts = getHostsByVpn(device, route);
                     logger.info(hosts.toString());
                     for (Host h : hosts) {
-                        ForwardingObjective.Builder objective =
-                                  getEvpnFlowBuilder(device.id(),
-                                                  route,
-                                                  h);
-                        logger.info("Installing route");
-                        flowObjectiveService.forward(device.id(),
-                                                     objective.add());
+
+                            ForwardingObjective.Builder objective =
+                                    getEvpnFlowBuilder(device.id(),
+                                                       route,
+                                                       h);
+                            logger.info("Installing route");
+                            flowObjectiveService.forward(device.id(),
+                                                         objective.add());
+
                     }
                 });
     }
+
+//    private boolean shouldNotify(EvpnRoute route, Host h) {
+//        // check which VPN EvpnRoute points to
+//        // check if Host and EvpnRoute are related to the same VPN
+//        // check if RouteTarget of VPN is contains Device which Host is attached to
+//        VpnInstance vpnInstance = vpnInstanceService.getInstanceByLabel(route.label());
+//        String hostsVpn = h.annotations().value("vpn-instance");
+//        vpnInstance.getExportRouteTargets();
+//
+//        if (vpnInstance.vpnInstanceName().getEvpnName().equals(hostsVpn)) {
+//
+//        }
+//
+//    }
 
     private ForwardingObjective.Builder getEvpnFlowBuilder(DeviceId id, EvpnRoute route, Host h) {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
@@ -294,81 +310,12 @@ public class RouteServer implements EvpnService {
         return null;
     }
 
-
-    public void addVrfInstance(String vpnName, DeviceId device) {
-        checkNotNull(vpnName);
-        checkNotNull(device);
-
-        VpnInstance vpnInstance = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnName));
-        String id = createVrfId(vpnInstance.id().vpnInstanceId(), device.toString());
-        // TODO: temporary solution. Need to implement creation for new routing table id for each VPN/VRF
-//        EvpnRouteTableId vrfId = new EvpnRouteTableId("evpn_ipv4");
-        EvpnRouteTableId vrfId = new EvpnRouteTableId("VRF:" + id);
-
-        VrfInstance vrfInstance = new DefaultVrfInstance(id, vpnInstance, device, vrfId);
-        vrfInstanceStore.put(id, vrfInstance);
-    }
-
-
-    public void removeVrfInstance(String vpnName, DeviceId deviceId) {
-        checkNotNull(vpnName);
-        checkNotNull(deviceId);
-        String vrfId = createVrfId(vpnName, deviceId.toString());
-        vrfInstanceStore.remove(vrfId, vrfInstanceStore.get(vrfId));
-    }
-
-    private void removeVrfAssociatedWithDevice(DeviceId deviceId) {
-        vrfInstanceStore.keySet().forEach(s -> {
-            if(vrfInstanceStore.get(s).device().equals(deviceId)) {
-                vrfInstanceStore.remove(s, vrfInstanceStore.get(s));
-            }
-        });
-    }
-
-
-    public VrfInstance getVrfInstance(String vpnName, DeviceId device) {
-        checkNotNull(vpnName);
-        checkNotNull(device);
-        String vrfId = createVrfId(vpnName, device.toString());
-        if(vrfInstanceStore.containsKey(vrfId))
-            return vrfInstanceStore.get(vrfId);
-        return null;
-    }
-
-
-    public boolean vrfExists(String vpnName, DeviceId device) {
-        checkNotNull(vpnName);
-        checkNotNull(device);
-        return this.vrfInstanceStore.containsKey(createVrfId(vpnName, device.toString()));
-    }
-
-
-    public Collection<VrfInstance> getVrfInstances() {
-        return vrfInstanceStore.values();
-    }
-
-
-    public Collection<VrfInstance> getVrfInstances(String vpnName) {
-        Set<VrfInstance> vrfInstances = Sets.newHashSet();
-        vrfInstanceStore.values().forEach(vrfInstance -> {
-            if(vrfInstance.vpnInstance().id().vpnInstanceId().equals(vpnName))
-                vrfInstances.add(vrfInstance);
-        });
-        return vrfInstances;
-    }
-
-    private String createVrfId(String vpnName, String deviceId) {
-        return vpnName + "/" + deviceId;
-    }
-
     private void removeAssociatedRoutes(Device device) {
         Set<EvpnRoute> routesToRemove = new HashSet<>();
         Collection<EvpnRouteSet> collection = evpnRouteStore.getRoutes(new EvpnRouteTableId("evpn_ipv4"));
         for (EvpnRouteSet evpnRouteSet : collection) {
-            logger.info("Removing 2");
             for(EvpnRoute evpnRoute : evpnRouteSet.routes()) {
                 if (checkRouteAssociatedWithDevice(evpnRoute, device)) {
-                    logger.info("Removing 2");
                     routesToRemove.add(evpnRoute);
                 }
             }
@@ -419,5 +366,25 @@ public class RouteServer implements EvpnService {
                 onBgpEvpnRouteDelete(route);
             }
         }
+    }
+
+    private class InternalVpnInstanceListener implements VpnInstanceListener {
+
+        @Override
+        public void event(VpnInstanceEvent event) {
+            notifyEvpnRoutes(event.subject(), event.device());
+        }
+    }
+
+    private void notifyEvpnRoutes(VpnInstance vpn, Device device) {
+        Collection<EvpnRouteSet> collection = evpnRouteStore.getRoutes(new EvpnRouteTableId("evpn_ipv4"));
+        collection.forEach(evpnRouteSet -> {
+            evpnRouteSet.routes().forEach(evpnRoute -> {
+                List<VpnRouteTarget> routeTargets = evpnRoute.exportRouteTarget();
+                Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
+                routeTargets.retainAll(vpnRouteTargets);
+                logger.info("RT to notify, " + routeTargets);
+            });
+        });
     }
 }
