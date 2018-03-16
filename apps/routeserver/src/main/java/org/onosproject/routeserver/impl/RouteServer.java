@@ -59,7 +59,6 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.host.HostService;
 import org.onosproject.routeserver.api.DefaultVpnInstance;
-import org.onosproject.routeserver.api.DefaultVrfInstance;
 import org.onosproject.routeserver.api.EvpnService;
 import org.onosproject.routeserver.api.VpnInstance;
 import org.onosproject.routeserver.api.VpnInstanceId;
@@ -79,8 +78,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.base.CharMatcher.any;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -153,8 +150,6 @@ public class RouteServer implements EvpnService {
         logger.info("Started.");
     }
 
-
-
     private void initializeVpnInstances() {
         vpnInstanceService.createInstance(createVpnInstance("blue"));
         vpnInstanceService.createInstance(createVpnInstance("red"));
@@ -194,7 +189,7 @@ public class RouteServer implements EvpnService {
                     Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
                     routeTargets.retainAll(vpnRouteTargets);
                     logger.info("RT to notify, " + routeTargets);
-                    if (shouldNotifyRoute(routeTargets, device.id())) {
+                    if (!shouldNotifyRoute(routeTargets, device.id())) {
                         sendUpdate(device.id(), route);
                     }
                 });
