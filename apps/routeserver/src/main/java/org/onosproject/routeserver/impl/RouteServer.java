@@ -187,7 +187,8 @@ public class RouteServer implements EvpnService {
                     List<VpnRouteTarget> routeTargets = route.exportRouteTarget();
                     VpnInstance vpn = getVpnByRouteDistinguisher(route.routeDistinguisher());
                     Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
-                    routeTargets.retainAll(vpnRouteTargets);
+                    logger.info("VPN Import targets: " + vpnRouteTargets);
+                    routeTargets.removeAll(vpnRouteTargets);
                     logger.info("RT to notify, " + routeTargets);
                     if (!shouldNotifyRoute(routeTargets, device.id())) {
                         sendUpdate(device.id(), route);
