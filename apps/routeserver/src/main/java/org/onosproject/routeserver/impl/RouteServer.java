@@ -191,8 +191,10 @@ public class RouteServer implements EvpnService {
                     logger.info("VPN Import targets: " + vpnRouteTargets);
                     vpnRouteTargets.removeAll(routeTargets);
                     logger.info("RT to notify, " + vpnRouteTargets);
-                    if (!vpnRouteTargets.isEmpty() && shouldNotifyRoute(routeTargets, device.id())) {
-                        sendUpdate(device.id(), route);
+                    if (!vpnRouteTargets.isEmpty()) {
+                        if (shouldNotifyRoute(vpnRouteTargets, device.id())) {
+                            sendUpdate(device.id(), route);
+                        }
                     }
                 });
     }
@@ -388,16 +390,21 @@ public class RouteServer implements EvpnService {
                 routeTargets.retainAll(vpnRouteTargets);
                 logger.info("RT to notify, " + routeTargets);
                 // if routeTargets do not point to device, notify route
-                if (shouldNotifyRoute(routeTargets, device.id())) {
+                if (!shouldNotifyRoute(routeTargets, device.id())) {
                     sendUpdate(device.id(), evpnRoute);
                 }
             });
         });
     }
 
-    private boolean shouldNotifyRoute(List<VpnRouteTarget> routeTargets, DeviceId deviceId) {
-        logger.info("Analyzing " + routeTargets.get(0) + " " + deviceId.uri().getSchemeSpecificPart());
-        return !routeTargets.get(0).getRouteTarget().contains(deviceId.uri().getSchemeSpecificPart());
+    private boolean shouldNotifyRoute(Collection<VpnRouteTarget> routeTargets, DeviceId deviceId) {
+        for(VpnRouteTarget vpnRouteTarget : routeTargets) {
+            logger.info("Analyzing " + vpnRouteTarget.getRouteTarget() + " " + deviceId.uri().getSchemeSpecificPart());
+            if (vpnRouteTarget.getRouteTarget().contains(deviceId.uri().getSchemeSpecificPart())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
