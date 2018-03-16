@@ -191,7 +191,7 @@ public class RouteServer implements EvpnService {
                     logger.info("VPN Import targets: " + vpnRouteTargets);
                     vpnRouteTargets.removeAll(routeTargets);
                     logger.info("RT to notify, " + vpnRouteTargets);
-                    if (shouldNotifyRoute(routeTargets, device.id())) {
+                    if (!vpnRouteTargets.isEmpty() && shouldNotifyRoute(routeTargets, device.id())) {
                         sendUpdate(device.id(), route);
                     }
                 });
