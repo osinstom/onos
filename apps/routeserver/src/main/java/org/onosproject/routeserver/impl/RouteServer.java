@@ -74,6 +74,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -184,10 +185,10 @@ public class RouteServer implements EvpnService {
                 .forEach(device -> {
                     logger.info("switch device is found");
 
-                    List<VpnRouteTarget> routeTargets = route.exportRouteTarget();
+                    List<VpnRouteTarget> routeTargets = new LinkedList<>(route.exportRouteTarget());
                     logger.info("Route RT: " + routeTargets);
                     VpnInstance vpn = getVpnByRouteDistinguisher(route.routeDistinguisher());
-                    Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
+                    Set<VpnRouteTarget> vpnRouteTargets = new LinkedHashSet<>(vpn.getImportRouteTargets());
                     logger.info("VPN Import targets: " + vpnRouteTargets);
                     vpnRouteTargets.removeAll(routeTargets);
                     logger.info("RT to notify, " + vpnRouteTargets);
@@ -342,7 +343,6 @@ public class RouteServer implements EvpnService {
 
 
     private class InternalDeviceListener implements DeviceListener {
-
         @Override
         public void event(DeviceEvent event) {
             logger.info("DeviceEvent: " + event.toString());
@@ -385,8 +385,10 @@ public class RouteServer implements EvpnService {
         Collection<EvpnRouteSet> collection = evpnRouteStore.getRoutes(new EvpnRouteTableId("evpn_ipv4"));
         collection.forEach(evpnRouteSet -> {
             evpnRouteSet.routes().forEach(evpnRoute -> {
-                List<VpnRouteTarget> routeTargets = evpnRoute.exportRouteTarget();
-                Set<VpnRouteTarget> vpnRouteTargets = vpn.getImportRouteTargets();
+                List<VpnRouteTarget> routeTargets = new LinkedList<>(evpnRoute.exportRouteTarget());
+                logger.info("Route RT: " + routeTargets);
+                Set<VpnRouteTarget> vpnRouteTargets = new LinkedHashSet<>(vpn.getImportRouteTargets());
+                logger.info("VPN Import targets: " + vpnRouteTargets);
                 routeTargets.retainAll(vpnRouteTargets);
                 logger.info("RT to notify, " + routeTargets);
                 // if routeTargets do not point to device, notify route
