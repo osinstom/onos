@@ -103,11 +103,11 @@ public class XmppNotificationBuilder {
 
     public XmppEventNotification buildRouteUpdate() {
         String vpn = getVpnName();
-        Element payload = buildPayload();
+        Element payload = buildNotifyPayload();
         return new XmppEventNotification(vpn, payload);
     }
 
-    private Element buildPayload() {
+    private Element buildNotifyPayload() {
         Element item = df.createElement("item");
         String itemId = generateItemIdFromXmppFlowData();
         item.addAttribute("id", itemId);
@@ -165,7 +165,15 @@ public class XmppNotificationBuilder {
     }
 
     public XmppEventNotification buildRouteWithdraw() {
-        return null;
+        String vpn = getVpnName();
+        Element retract = buildRetractPayload();
+        return new XmppEventNotification(vpn, retract);
+    }
+
+    private Element buildRetractPayload() {
+        Element retract = df.createElement("retract");
+        retract.addAttribute("id", generateItemIdFromXmppFlowData());
+        return retract;
     }
 
 }

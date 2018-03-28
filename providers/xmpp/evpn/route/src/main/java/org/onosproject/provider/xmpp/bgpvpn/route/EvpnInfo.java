@@ -3,11 +3,15 @@ package org.onosproject.provider.xmpp.bgpvpn.route;
 import org.dom4j.Element;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
+import org.onosproject.xmpp.pubsub.model.XmppRetract;
 
 /**
  *
  */
-public class EvpnPublish {
+public class EvpnInfo {
+
+    private static int DEFAULT_SAFI = 70;
+    private static int DEFAULT_AF = 5;
 
     private int nlriSafi;
     private int label;
@@ -17,7 +21,7 @@ public class EvpnPublish {
     private int nextHopAf;
     private String nextHopAddress;
 
-    public EvpnPublish(int label, int nlriAf, int nlriSafi, String macAddress, String nlriIpAddress, int nextHopAf, String nextHopAddress) {
+    private EvpnInfo(int label, int nlriAf, int nlriSafi, String macAddress, String nlriIpAddress, int nextHopAf, String nextHopAddress) {
         this.label = label;
         this.macAddress = macAddress;
         this.nlriAf = nlriAf;
@@ -65,7 +69,7 @@ public class EvpnPublish {
 
     @Override
     public String toString() {
-        return "EvpnPublish{" +
+        return "EvpnInfo{" +
                 "label=" + label +
                 ", nlriAf=" + nlriAf +
                 ", macAddress=" + macAddress + '\'' +
@@ -75,7 +79,7 @@ public class EvpnPublish {
                 '}';
     }
 
-    public static EvpnPublish asBgpInfo(XmppPublish publish) {
+    public static EvpnInfo parseXmppPublish(XmppPublish publish) {
         Element entry = publish.getItemEntry();
         Element nlri = entry.element("nlri");
         int nlriAf = Integer.parseInt(nlri.element("af").getStringValue());
@@ -86,7 +90,17 @@ public class EvpnPublish {
         int nextHopAf = Integer.parseInt(nextHop.element("af").getStringValue());
         String nextHopIpAddress = nextHop.element("address").getStringValue();
         int label = Integer.parseInt(nextHop.element("label").getStringValue());
-        return new EvpnPublish(label, nlriAf, nlriSafi, macAddress, ipAddress, nextHopAf, nextHopIpAddress);
+        return new EvpnInfo(label, nlriAf, nlriSafi, macAddress, ipAddress, nextHopAf, nextHopIpAddress);
+    }
+
+    public static EvpnInfo parseXmppRetract(XmppRetract retract) {
+        String itemId = retract.getItemID();
+        String[] attributes = itemId.split("/");
+        String nextHopIpAddress = attributes[0];
+        String ipAddress = attributes[2];
+        String macAddress = attributes[3];
+        int label = Integer.parseInt(attributes[4]);
+        return new EvpnInfo(label, DEFAULT_AF, DEFAULT_SAFI, macAddress, ipAddress, 0, nextHopIpAddress);
     }
 
 

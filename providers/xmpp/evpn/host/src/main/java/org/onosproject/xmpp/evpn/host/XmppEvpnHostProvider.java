@@ -36,10 +36,9 @@ import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.provider.xmpp.bgpvpn.route.EvpnPublish;
+import org.onosproject.provider.xmpp.bgpvpn.route.EvpnInfo;
 import org.onosproject.provider.xmpp.bgpvpn.route.EvpnRetract;
 import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
@@ -114,12 +113,12 @@ public class XmppEvpnHostProvider extends AbstractProvider implements HostProvid
     }
 
     private void removeHost(XmppRetract retract) {
-        MacAddress macAddress = EvpnRetract.asEvpnInfo(retract.getItemID()).macAddress();
+        MacAddress macAddress = MacAddress.valueOf(EvpnInfo.parseXmppRetract(retract).getMacAddress());
         providerService.hostVanished(HostId.hostId(macAddress, VlanId.vlanId()));
     }
 
     private void addHost(XmppPublish publish) {
-        EvpnPublish info = EvpnPublish.asBgpInfo(publish);
+        EvpnInfo info = EvpnInfo.parseXmppPublish(publish);
         HostId hostId = HostId.hostId(MacAddress.valueOf(info.getMacAddress()), VlanId.vlanId());
         DeviceId deviceId = XmppDeviceId.asDeviceId(publish.getFrom());
         PortNumber portNumber = PortNumber.ANY;
