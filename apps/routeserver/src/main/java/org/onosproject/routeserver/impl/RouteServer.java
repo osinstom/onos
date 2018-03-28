@@ -160,7 +160,7 @@ public class RouteServer implements EvpnService {
         VpnInstanceId vpnInstanceId = VpnInstanceId.vpnInstanceId(name);
         EvpnInstanceName evpnInstanceName = EvpnInstanceName.evpnName(name);
         Label vpnLabel = generateVpnLabel();
-        RouteDistinguisher routeDistinguisher = RouteDistinguisher.routeDistinguisher(name + "/" + vpnLabel.getLabel());
+        RouteDistinguisher routeDistinguisher = RouteDistinguisher.routeDistinguisher(name + ":" + vpnLabel.getLabel());
         Set<VpnRouteTarget> exportRouteTargets = new HashSet<>();
         Set<VpnRouteTarget> importRouteTargets = new HashSet<>();
         Set<VpnRouteTarget> configRouteTargets = new HashSet<>();
@@ -193,7 +193,7 @@ public class RouteServer implements EvpnService {
                     vpnRouteTargets.removeAll(routeTargets);
                     logger.info("RT to notify, " + vpnRouteTargets);
                     if (!vpnRouteTargets.isEmpty()) {
-                        if (shouldNotifyRoute(vpnRouteTargets, device.id())) {
+                        if (isSimilarRouteTarget(vpnRouteTargets, device.id())) {
                             sendUpdate(device.id(), route);
                         }
                     }
@@ -303,7 +303,7 @@ public class RouteServer implements EvpnService {
                     vpnRouteTargets.removeAll(routeTargets);
                     logger.info("RT to notify, " + vpnRouteTargets);
                     if (!vpnRouteTargets.isEmpty()) {
-                        if (shouldNotifyRoute(vpnRouteTargets, device.id())) {
+                        if (isSimilarRouteTarget(vpnRouteTargets, device.id())) {
                             sendWithdraw(device.id(), route);
                         }
                     }
@@ -421,6 +421,9 @@ public class RouteServer implements EvpnService {
         Collection<EvpnRouteSet> collection = evpnRouteStore.getRoutes(new EvpnRouteTableId("evpn_ipv4"));
         collection.forEach(evpnRouteSet -> {
             evpnRouteSet.routes().forEach(evpnRoute -> {
+                if (!isSimilarRouteDistinguisher(vpn, evpnRoute)) {
+                    return;
+                }
                 List<VpnRouteTarget> routeTargets = new LinkedList<>(evpnRoute.exportRouteTarget());
                 logger.info("Route RT: " + routeTargets);
                 Set<VpnRouteTarget> vpnRouteTargets = new LinkedHashSet<>(vpn.getImportRouteTargets());
@@ -428,14 +431,18 @@ public class RouteServer implements EvpnService {
                 routeTargets.retainAll(vpnRouteTargets);
                 logger.info("RT to notify, " + routeTargets);
                 // if routeTargets do not point to device, notify route
-                if (!shouldNotifyRoute(routeTargets, device.id())) {
+                if (isSimilarRouteTarget(routeTargets, device.id())) {
                     sendUpdate(device.id(), evpnRoute);
                 }
             });
         });
     }
 
-    private boolean shouldNotifyRoute(Collection<VpnRouteTarget> routeTargets, DeviceId deviceId) {
+    private boolean isSimilarRouteDistinguisher(VpnInstance vpn, EvpnRoute evpnRoute) {
+        return vpn.routeDistinguisher().equals(evpnRoute.routeDistinguisher());
+    }
+
+    private boolean isSimilarRouteTarget(Collection<VpnRouteTarget> routeTargets, DeviceId deviceId) {
         for(VpnRouteTarget vpnRouteTarget : routeTargets) {
             logger.info("Analyzing " + vpnRouteTarget.getRouteTarget() + " " + deviceId.uri().getSchemeSpecificPart());
             if (vpnRouteTarget.getRouteTarget().contains(deviceId.uri().getSchemeSpecificPart())) {

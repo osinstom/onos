@@ -60,7 +60,7 @@ public class EvpnInfo {
     }
 
     public String getRouteDistinguisher(String vpnInstanceId) {
-        return String.format("%s/%s/%s/%s/%s", nextHopAddress, vpnInstanceId, nlriIpAddress, macAddress, label);
+        return String.format("%s:%s", vpnInstanceId, label);
     }
 
     public VpnRouteTarget getRouteTarget(String deviceId) {

@@ -39,7 +39,6 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.provider.xmpp.bgpvpn.route.EvpnInfo;
-import org.onosproject.provider.xmpp.bgpvpn.route.EvpnRetract;
 import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
