@@ -352,10 +352,16 @@ public class RouteServer implements EvpnService {
                 }
             }
         }
-
         routesToRemove.forEach(evpnRoute -> {
             evpnRouteStore.removeRoute(evpnRoute);
             logger.info("Route {} has been removed from store", evpnRoute.toString());
+        });
+    }
+
+    private void removeDeviceFromVpns(Device device) {
+        vpnInstanceService.getInstances().forEach(vpnInstance -> {
+            vpnInstanceService.detachDevice(vpnInstance.id(), device);
+            logger.info("Device {} has been detached from VPN {}", device.id(), vpnInstance.id());
         });
     }
 
@@ -376,6 +382,7 @@ public class RouteServer implements EvpnService {
                 case DEVICE_REMOVED:
                     if (!deviceService.isAvailable(event.subject().id())) {
                         removeAssociatedRoutes(event.subject());
+                        removeDeviceFromVpns(event.subject());
                     }
                     break;
             }
