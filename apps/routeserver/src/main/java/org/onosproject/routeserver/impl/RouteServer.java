@@ -423,7 +423,7 @@ public class RouteServer implements EvpnService {
                 routeTargets.retainAll(vpnRouteTargets);
                 logger.info("RT to notify, " + routeTargets);
                 // if routeTargets do not point to device, notify route
-                if (isSimilarRouteTarget(routeTargets, device.id())) {
+                if (!isSimilarRouteTarget(routeTargets, device.id())) {
                     sendUpdate(device.id(), evpnRoute);
                 }
             });
