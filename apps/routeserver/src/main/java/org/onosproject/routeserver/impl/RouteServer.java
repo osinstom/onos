@@ -225,6 +225,14 @@ public class RouteServer implements EvpnService {
                                      objective.add());
     }
 
+    private void sendWithdraw(DeviceId deviceId, EvpnRoute evpnRoute) {
+        ForwardingObjective.Builder objective =
+                getEvpnFlowBuilder(evpnRoute);
+        logger.info("Removing route");
+        flowObjectiveService.forward(deviceId,
+                                     objective.remove());
+    }
+
     private ForwardingObjective.Builder getEvpnFlowBuilder(EvpnRoute route) {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
 
@@ -283,6 +291,23 @@ public class RouteServer implements EvpnService {
     @Override
     public void onBgpEvpnRouteDelete(EvpnRoute route) {
         logger.info("onBgpEvpnRouteDelete");
+        deviceService.getAvailableDevices()
+                .forEach(device -> {
+                    logger.info("switch device is found");
+
+                    List<VpnRouteTarget> routeTargets = new LinkedList<>(route.exportRouteTarget());
+                    logger.info("Route RT: " + routeTargets);
+                    VpnInstance vpn = getVpnByRouteDistinguisher(route.routeDistinguisher());
+                    Set<VpnRouteTarget> vpnRouteTargets = new LinkedHashSet<>(vpn.getImportRouteTargets());
+                    logger.info("VPN Import targets: " + vpnRouteTargets);
+                    vpnRouteTargets.removeAll(routeTargets);
+                    logger.info("RT to notify, " + vpnRouteTargets);
+                    if (!vpnRouteTargets.isEmpty()) {
+                        if (shouldNotifyRoute(vpnRouteTargets, device.id())) {
+                            sendWithdraw(device.id(), route);
+                        }
+                    }
+                });
     }
 
     @Override
