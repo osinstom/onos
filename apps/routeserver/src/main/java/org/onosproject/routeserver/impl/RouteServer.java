@@ -202,20 +202,12 @@ public class RouteServer implements EvpnService {
 
     private VpnInstance getVpnByRouteDistinguisher(RouteDistinguisher routeDistinguisher) {
         for (VpnInstance vpnInstance : vpnInstanceService.getInstances()) {
-            if (isCorrespondingRouteDistinguisher(vpnInstance.routeDistinguisher(), routeDistinguisher)) {
+            if (isSimilarRouteDistinguisher(vpnInstance, routeDistinguisher)) {
                 return vpnInstance;
             }
         }
         return null;
     }
-
-    private boolean isCorrespondingRouteDistinguisher(RouteDistinguisher vpnRd, RouteDistinguisher routeRd) {
-        String[] vpnRds = vpnRd.getRouteDistinguisher().split("/");
-        String vpnName = vpnRds[0];
-        String label = vpnRds[1];
-        return routeRd.getRouteDistinguisher().contains(vpnName) && routeRd.getRouteDistinguisher().contains(label);
-    }
-
 
     private void sendUpdate(DeviceId deviceId, EvpnRoute evpnRoute) {
         ForwardingObjective.Builder objective =
@@ -421,7 +413,7 @@ public class RouteServer implements EvpnService {
         Collection<EvpnRouteSet> collection = evpnRouteStore.getRoutes(new EvpnRouteTableId("evpn_ipv4"));
         collection.forEach(evpnRouteSet -> {
             evpnRouteSet.routes().forEach(evpnRoute -> {
-                if (!isSimilarRouteDistinguisher(vpn, evpnRoute)) {
+                if (!isSimilarRouteDistinguisher(vpn, evpnRoute.routeDistinguisher())) {
                     return;
                 }
                 List<VpnRouteTarget> routeTargets = new LinkedList<>(evpnRoute.exportRouteTarget());
@@ -438,8 +430,8 @@ public class RouteServer implements EvpnService {
         });
     }
 
-    private boolean isSimilarRouteDistinguisher(VpnInstance vpn, EvpnRoute evpnRoute) {
-        return vpn.routeDistinguisher().equals(evpnRoute.routeDistinguisher());
+    private boolean isSimilarRouteDistinguisher(VpnInstance vpn, RouteDistinguisher routeDistinguisher) {
+        return vpn.routeDistinguisher().equals(routeDistinguisher);
     }
 
     private boolean isSimilarRouteTarget(Collection<VpnRouteTarget> routeTargets, DeviceId deviceId) {
