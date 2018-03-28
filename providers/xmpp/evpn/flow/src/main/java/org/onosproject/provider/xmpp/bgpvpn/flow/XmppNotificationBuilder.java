@@ -67,7 +67,7 @@ public class XmppNotificationBuilder {
                     break;
                 case IPV4_DST:
                     IPCriterion ipCriterion = (IPCriterion) c;
-                    flowDataBuilder.addIpPrefix(ipCriterion.ip().toString());
+                    flowDataBuilder.addIpPrefix(ipCriterion.ip().address().toString());
                     break;
             }
         }
