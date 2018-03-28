@@ -110,8 +110,8 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
         Ip4Address ipAddress = Ip4Address
                 .valueOf(info.getNlriIpAddress());
 
-        Ip4Address ipNextHop = Ip4Address
-                .valueOf(info.getNextHopAddress());
+//        Ip4Address ipNextHop = Ip4Address
+//                .valueOf(info.getNextHopAddress());
 
         VpnInstance vpnInstance = vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(retract.getNodeID()));
         if(vpnInstance!=null) {
@@ -120,10 +120,11 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
             EvpnRoute evpnRoute = new EvpnRoute(EvpnRoute.Source.LOCAL,
                     MacAddress.valueOf(info.getMacAddress()),
                     IpPrefix.valueOf(ipAddress, 32),
-                    ipNextHop,
+                    null,
                     info.getRouteDistinguisher(retract.getNodeID()),
-                    null, exportRt, info.getLabel());
+                    null, null, info.getLabel());
             evpnRouteAdminService.withdraw(Collections.singleton(evpnRoute));
+            logger.info("Route has been withdrawn");
         } else {
             // TODO: return error
         }

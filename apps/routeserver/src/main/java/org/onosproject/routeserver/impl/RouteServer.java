@@ -377,7 +377,9 @@ public class RouteServer implements EvpnService {
     private class InternalVpnInstanceListener implements VpnInstanceListener {
         @Override
         public void event(VpnInstanceEvent event) {
-            notifyEvpnRoutes(event.subject(), event.device());
+            if (event.type() == VpnInstanceEvent.Type.VPN_DEVICE_ATTACHED) {
+                notifyEvpnRoutes(event.subject(), event.device());
+            }
         }
     }
 
