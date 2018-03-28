@@ -308,6 +308,8 @@ public class RouteServer implements EvpnService {
                         }
                     }
                 });
+        evpnRouteStore.removeRoute(route);
+        logger.info("Route {} removed from store", route.evpnPrefix().toString());
     }
 
     @Override
@@ -393,10 +395,10 @@ public class RouteServer implements EvpnService {
 
         @Override
         public void event(EvpnRouteEvent event) {
+            logger.info("Received: " + event.toString());
             if (!(event.subject() instanceof EvpnRoute)) {
                 return;
             }
-            logger.info("Received: " + event.toString());
             EvpnRoute route = (EvpnRoute) event.subject();
             if (EvpnRouteEvent.Type.ROUTE_ADDED == event.type()) {
                 onBgpEvpnRouteUpdate(route);
