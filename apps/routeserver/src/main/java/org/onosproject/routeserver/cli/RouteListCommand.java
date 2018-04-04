@@ -51,9 +51,11 @@ public class RouteListCommand  extends AbstractShellCommand {
                     evpnRoute.exportRouteTarget().forEach(vpnRouteTarget -> {
                         expRouteTargets.add(vpnRouteTarget.getRouteTarget());
                     });
-                    evpnRoute.importRouteTarget().forEach(vpnRouteTarget -> {
-                        impRouteTargets.add(vpnRouteTarget.getRouteTarget());
-                    });
+                    if (evpnRoute.importRouteTarget() != null) {
+                        evpnRoute.importRouteTarget().forEach(vpnRouteTarget -> {
+                            impRouteTargets.add(vpnRouteTarget.getRouteTarget());
+                        });
+                    }
                     print(FORMAT_ROUTES, evpnRouteSet.tableId().name(),
                           evpnRoute.prefixIp().address().toString(),
                           evpnRoute.ipNextHop().toString(),
