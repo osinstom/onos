@@ -19,6 +19,8 @@ package org.onosproject.routeserver.cli;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routeserver.api.EvpnService;
+import org.onosproject.routeserver.api.VpnInstance;
+import org.onosproject.routeserver.api.VpnInstanceService;
 import org.onosproject.routeserver.impl.RouteServer;
 import org.onosproject.evpnrouteservice.EvpnRouteSet;
 
@@ -34,12 +36,14 @@ import java.util.List;
 public class RouteListCommand  extends AbstractShellCommand {
 
     private static final String FORMAT_HEADER =
-            "   VPN name            Prefix         Next Hop      RouteDistinguisher   ExportRouteTargets      ImportRouteTargets";
-    public static final String FORMAT_ROUTES = "   %-19s %-14s %-14s %-14s %-14s";
+            "VPN name            Prefix         Next Hop      RouteDistinguisher   ExportRouteTargets      ImportRouteTargets";
+    public static final String FORMAT_ROUTES = "%-19s %-14s %-13s %-20s %-19s";
 
     @Override
     protected void execute() {
         EvpnService service = AbstractShellCommand.get(EvpnService.class);
+        VpnInstanceService vpnInstanceService = AbstractShellCommand.get(VpnInstanceService.class);
+
         RouteServer manager = (RouteServer) service;
         Collection<EvpnRouteSet> routeSet = manager.getVpnRoutes("evpn_ipv4");
         if (routeSet != null) {
@@ -48,6 +52,7 @@ public class RouteListCommand  extends AbstractShellCommand {
                 evpnRouteSet.routes().forEach(evpnRoute -> {
                     List<String> expRouteTargets = new ArrayList<>();
                     List<String> impRouteTargets = new ArrayList<>();
+
                     evpnRoute.exportRouteTarget().forEach(vpnRouteTarget -> {
                         expRouteTargets.add(vpnRouteTarget.getRouteTarget());
                     });
@@ -56,7 +61,8 @@ public class RouteListCommand  extends AbstractShellCommand {
                             impRouteTargets.add(vpnRouteTarget.getRouteTarget());
                         });
                     }
-                    print(FORMAT_ROUTES, evpnRouteSet.tableId().name(),
+                    VpnInstance vpnInstance = vpnInstanceService.getInstanceByLabel(evpnRoute.label());
+                    print(FORMAT_ROUTES, vpnInstance.id(),
                           evpnRoute.prefixIp().address().toString(),
                           evpnRoute.ipNextHop().toString(),
                           evpnRoute.routeDistinguisher().getRouteDistinguisher(),
