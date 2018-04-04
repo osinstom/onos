@@ -22,7 +22,9 @@ import org.onosproject.routeserver.api.EvpnService;
 import org.onosproject.routeserver.impl.RouteServer;
 import org.onosproject.evpnrouteservice.EvpnRouteSet;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Support for displaying EVPN/L3VPN routes.
@@ -33,7 +35,7 @@ public class RouteListCommand  extends AbstractShellCommand {
 
     private static final String FORMAT_HEADER =
             "   VPN name            Prefix         Next Hop      RouteDistinguisher   ExportRouteTargets      ImportRouteTargets";
-    public static final String FORMAT_ROUTES = "   %-18s %-15s %-10s %-10s %-10s";
+    public static final String FORMAT_ROUTES = "   %-19s %-14s %-14s %-14s %-14s";
 
     @Override
     protected void execute() {
@@ -44,12 +46,20 @@ public class RouteListCommand  extends AbstractShellCommand {
             print(FORMAT_HEADER);
             routeSet.forEach(evpnRouteSet -> {
                 evpnRouteSet.routes().forEach(evpnRoute -> {
+                    List<String> expRouteTargets = new ArrayList<>();
+                    List<String> impRouteTargets = new ArrayList<>();
+                    evpnRoute.exportRouteTarget().forEach(vpnRouteTarget -> {
+                        expRouteTargets.add(vpnRouteTarget.getRouteTarget());
+                    });
+                    evpnRoute.importRouteTarget().forEach(vpnRouteTarget -> {
+                        impRouteTargets.add(vpnRouteTarget.getRouteTarget());
+                    });
                     print(FORMAT_ROUTES, evpnRouteSet.tableId().name(),
                           evpnRoute.prefixIp().address().toString(),
                           evpnRoute.ipNextHop().toString(),
                           evpnRoute.routeDistinguisher().getRouteDistinguisher(),
-                          evpnRoute.exportRouteTarget(),
-                          evpnRoute.importRouteTarget());
+                          expRouteTargets,
+                          impRouteTargets);
                 });
 
             });

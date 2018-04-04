@@ -204,7 +204,6 @@ public class VpnInstanceManager implements VpnInstanceService {
         store.detachDeviceFromVpn(vpnInstanceId, device);
     }
 
-
     @Override
     public void addListener(VpnInstanceListener listener) {
         listeners.add(listener);

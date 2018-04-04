@@ -20,12 +20,14 @@ import org.onosproject.xmpp.pubsub.XmppPubSubController;
 import org.onosproject.xmpp.pubsub.XmppPublishEventsListener;
 import org.onosproject.xmpp.pubsub.XmppSubscribeEventsListener;
 import org.onosproject.xmpp.pubsub.model.XmppEventNotification;
+import org.onosproject.xmpp.pubsub.model.XmppPubSubError;
 import org.onosproject.xmpp.pubsub.model.XmppPublish;
 import org.onosproject.xmpp.pubsub.model.XmppRetract;
 import org.onosproject.xmpp.pubsub.model.XmppSubscribe;
 import org.onosproject.xmpp.pubsub.model.XmppUnsubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmpp.packet.JID;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -126,8 +128,15 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
             evpnRouteAdminService.withdraw(Collections.singleton(evpnRoute));
             logger.info("Route has been withdrawn");
         } else {
-            // TODO: return error
+            logger.error("VPN with specified name does not exist.");
+            notifyError(retract.getJabberId(), XmppPubSubError.PubSubApplicationCondition.ITEM_NOT_FOUND);
         }
+    }
+
+    private void notifyError(String id, XmppPubSubError.PubSubApplicationCondition applicationCondition) {
+        XmppPubSubError error = new XmppPubSubError(applicationCondition);
+        DeviceId deviceId = XmppDeviceId.asDeviceId(new JID(id));
+        xmppPubSubController.notify(deviceId, error);
     }
 
     private class InternalXmppPubSubEventListener implements XmppPublishEventsListener, XmppSubscribeEventsListener {
@@ -173,24 +182,27 @@ public class XmppEvpnRouteProvider extends AbstractProvider  {
 
     private void withdrawRouteTarget(XmppUnsubscribe unsubscribeEvent) {
         String vpnInstanceId = unsubscribeEvent.getNodeID();
-        String label = String.valueOf(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().getLabel());
-        String routeTarget = String.format("target/%s/%s", unsubscribeEvent.getJabberId(), label);
-        vpnInstanceService.withdrawImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
-                                                    VpnRouteTarget.routeTarget(routeTarget),
-                                                    VpnInstanceId.vpnInstanceId(vpnInstanceId));
+        if (vpnInstanceService.exists(VpnInstanceId.vpnInstanceId(vpnInstanceId))) {
+            String label = String.valueOf(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().getLabel());
+            String routeTarget = String.format("target/%s/%s", unsubscribeEvent.getJabberId(), label);
+            vpnInstanceService.withdrawImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
+                                                          VpnRouteTarget.routeTarget(routeTarget),
+                                                          VpnInstanceId.vpnInstanceId(vpnInstanceId));
+        } else {
+            notifyError(unsubscribeEvent.getJabberId(), XmppPubSubError.PubSubApplicationCondition.ITEM_NOT_FOUND);
+        }
     }
 
     private void updateRouteTarget(XmppSubscribe subscribeEvent) {
         String vpnInstanceId = subscribeEvent.getNodeID();
-        String label = String.valueOf(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().getLabel());
-        String routeTarget = String.format("target/%s/%s", subscribeEvent.getJabberId(), label);
-        vpnInstanceService.updateImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
-                                                    VpnRouteTarget.routeTarget(routeTarget),
-                                                    VpnInstanceId.vpnInstanceId(vpnInstanceId));
+        if (vpnInstanceService.exists(VpnInstanceId.vpnInstanceId(vpnInstanceId))) {
+            String label = String.valueOf(vpnInstanceService.getInstance(VpnInstanceId.vpnInstanceId(vpnInstanceId)).label().getLabel());
+            String routeTarget = String.format("target/%s/%s", subscribeEvent.getJabberId(), label);
+            vpnInstanceService.updateImpExpRouteTargets(VpnInstanceService.RouteTargetType.BOTH,
+                                                        VpnRouteTarget.routeTarget(routeTarget),
+                                                        VpnInstanceId.vpnInstanceId(vpnInstanceId));
+        } else {
+            notifyError(subscribeEvent.getJabberId(), XmppPubSubError.PubSubApplicationCondition.ITEM_NOT_FOUND);
+        }
     }
-
-    private void sendEventNotification(DeviceId deviceId, String vpnName, Element payload) {
-        xmppPubSubController.notify(deviceId, new XmppEventNotification(vpnName, payload));
-    }
-
 }

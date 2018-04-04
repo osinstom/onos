@@ -21,7 +21,9 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routeserver.api.VpnInstance;
 import org.onosproject.routeserver.api.VpnInstanceService;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -38,13 +40,23 @@ public class VpnListCommand extends AbstractShellCommand {
         VpnInstanceService service = get(VpnInstanceService.class);
         Collection<VpnInstance> vpnInstances = service
                 .getInstances();
+
         vpnInstances.forEach(vpnInstance -> {
+            List<String> expRouteTargets = new ArrayList<>();
+            List<String> impRouteTargets = new ArrayList<>();
+            vpnInstance.getExportRouteTargets().forEach(vpnRouteTarget -> {
+                expRouteTargets.add(vpnRouteTarget.getRouteTarget());
+            });
+            vpnInstance.getImportRouteTargets().forEach(vpnRouteTarget -> {
+                impRouteTargets.add(vpnRouteTarget.getRouteTarget());
+            });
+
             print(FORMAT_VPN_INSTANCE, vpnInstance.id(),
                     vpnInstance.description(),
-                    vpnInstance.vpnInstanceName(),
-                    vpnInstance.routeDistinguisher(),
-                    vpnInstance.getExportRouteTargets(),
-                    vpnInstance.getImportRouteTargets());
+                    vpnInstance.vpnInstanceName().getEvpnName(),
+                    vpnInstance.routeDistinguisher().getRouteDistinguisher(),
+                    expRouteTargets,
+                    impRouteTargets);
         });
     }
 
