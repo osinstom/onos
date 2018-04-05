@@ -22,7 +22,7 @@ import org.xmpp.packet.Message;
 import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_EVENT_NS;
 
 /**
- * Abstracts Event Notification message of XMPP protocol.
+ * Abstracts Event Notification message of XMPP PubSub protocol.
  */
 public class XmppEventNotification extends Message {
 

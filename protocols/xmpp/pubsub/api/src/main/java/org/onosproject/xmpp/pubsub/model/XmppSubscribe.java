@@ -19,7 +19,7 @@ package org.onosproject.xmpp.pubsub.model;
 import org.xmpp.packet.IQ;
 
 /**
- * Abstracts Subscribe message of XMPP protocol.
+ * Abstracts Subscribe message of XMPP PubSub protocol.
  */
 public class XmppSubscribe extends IQ {
 

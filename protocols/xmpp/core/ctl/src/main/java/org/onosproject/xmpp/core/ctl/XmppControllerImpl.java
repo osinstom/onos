@@ -16,6 +16,7 @@
 
 package org.onosproject.xmpp.core.ctl;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -85,7 +86,7 @@ public class XmppControllerImpl implements XmppController {
     // listener declaration
     protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();
 
-    Multimap<String,XmppIqListener> xmppIqListeners = Multimaps.synchronizedSetMultimap(HashMultimap.create());
+    Multimap<String, XmppIqListener> xmppIqListeners = Multimaps.synchronizedSetMultimap(HashMultimap.create());
     protected Set<XmppMessageListener> xmppMessageListeners = new CopyOnWriteArraySet<XmppMessageListener>();
     protected Set<XmppPresenceListener> xmppPresenceListeners = new CopyOnWriteArraySet<XmppPresenceListener>();
 
@@ -99,12 +100,12 @@ public class XmppControllerImpl implements XmppController {
 
     @Activate
     public void activate(ComponentContext context) {
-        log.info("XmppControllerImpl started.");
         coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
         deviceFactory.init(agent);
         xmppServer.setConfiguration(context.getProperties());
         xmppServer.start(deviceFactory);
+        log.info("XmppControllerImpl started.");
     }
 
     @Deactivate

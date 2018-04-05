@@ -243,12 +243,12 @@ public class XmppPubSubControllerTest {
         }
 
         @Override
-        public void addXmppIqListener(XmppIqListener iqListener) {
+        public void addXmppIqListener(XmppIqListener iqListener, String namespace) {
             this.iqListener = iqListener;
         }
 
         @Override
-        public void removeXmppIqListener(XmppIqListener iqListener) {
+        public void removeXmppIqListener(XmppIqListener iqListener, String namespace) {
             this.iqListener = null;
         }
 
@@ -277,11 +277,6 @@ public class XmppPubSubControllerTest {
 
         final List<Packet> sentPackets = Lists.newArrayList();
         final List<PacketError> sentErrors = Lists.newArrayList();
-
-        @Override
-        public void setSession(XmppSession session) {
-
-        }
 
         @Override
         public XmppSession getSession() {

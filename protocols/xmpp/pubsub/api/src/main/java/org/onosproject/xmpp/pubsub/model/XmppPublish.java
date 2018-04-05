@@ -20,7 +20,7 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 
 /**
- * Abstracts Publish message of XMPP protocol.
+ * Abstracts Publish message of XMPP PubSub protocol.
  */
 public class XmppPublish extends IQ {
 

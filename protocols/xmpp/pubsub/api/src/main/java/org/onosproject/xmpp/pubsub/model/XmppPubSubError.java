@@ -17,15 +17,13 @@
 package org.onosproject.xmpp.pubsub.model;
 
 import org.xmpp.packet.PacketError;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_ERROR_NS;
 
 /**
- * Abstracts Publish/Subscribe error message of XMPP protocol.
+ * Abstracts Publish/Subscribe error message of XMPP PubSub protocol.
  */
 public class XmppPubSubError {
 
@@ -34,11 +32,14 @@ public class XmppPubSubError {
         ITEM_NOT_FOUND
     }
 
-    private static final Map<PubSubApplicationCondition, PacketError.Condition> APP_BASE_CONDITION_MAP = new HashMap<>();
+    private static final Map<PubSubApplicationCondition, PacketError.Condition>
+            APP_BASE_CONDITION_MAP = new HashMap<>();
 
     static {
-        APP_BASE_CONDITION_MAP.put(PubSubApplicationCondition.ITEM_NOT_FOUND, PacketError.Condition.item_not_found);
-        APP_BASE_CONDITION_MAP.put(PubSubApplicationCondition.NOT_SUBSCRIBED, PacketError.Condition.unexpected_request);
+        APP_BASE_CONDITION_MAP.put(PubSubApplicationCondition.ITEM_NOT_FOUND,
+                                   PacketError.Condition.item_not_found);
+        APP_BASE_CONDITION_MAP.put(PubSubApplicationCondition.NOT_SUBSCRIBED,
+                                   PacketError.Condition.unexpected_request);
     }
 
     private PacketError.Condition baseCondition;
@@ -50,13 +51,15 @@ public class XmppPubSubError {
     }
 
     private PacketError.Condition setBasedOnAppCondition() {
-        return APP_BASE_CONDITION_MAP.getOrDefault(this.applicationCondition, PacketError.Condition.undefined_condition);
+        return APP_BASE_CONDITION_MAP.getOrDefault(this.applicationCondition,
+                                                   PacketError.Condition.undefined_condition);
     }
 
     public PacketError asPacketError() {
         PacketError packetError = new PacketError(this.baseCondition);
         if (applicationCondition != null) {
-            packetError.setApplicationCondition(applicationCondition.toString().toLowerCase(), PUBSUB_ERROR_NS);
+            packetError.setApplicationCondition(applicationCondition.toString().toLowerCase(),
+                                                PUBSUB_ERROR_NS);
         }
         return packetError;
     }

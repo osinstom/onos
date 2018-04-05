@@ -49,6 +49,7 @@ public interface XmppController {
      * Register a listener for IQ stanzas containing specific XML namespace.
      *
      * @param iqListener the listener to notify
+     * @param namespace the XML namespace to observe
      */
     void addXmppIqListener(XmppIqListener iqListener, String namespace);
 
@@ -56,6 +57,7 @@ public interface XmppController {
      * Unregister a listener for IQ stanzas containing specific XML namespace.
      *
      * @param iqListener the listener to unregister
+     * @param namespace the XML namespace to observe
      */
     void removeXmppIqListener(XmppIqListener iqListener, String namespace);
 

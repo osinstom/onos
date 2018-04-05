@@ -19,7 +19,7 @@ package org.onosproject.xmpp.pubsub.model;
 import org.xmpp.packet.IQ;
 
 /**
- * Abstracts Unsubscribe message of XMPP protocol.
+ * Abstracts Unsubscribe message of XMPP PubSub protocol.
  */
 public class XmppUnsubscribe extends IQ {
 

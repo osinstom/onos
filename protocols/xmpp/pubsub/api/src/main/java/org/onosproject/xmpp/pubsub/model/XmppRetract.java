@@ -19,7 +19,7 @@ package org.onosproject.xmpp.pubsub.model;
 import org.xmpp.packet.IQ;
 
 /**
- * Abstracts Retract message of XMPP protocol.
+ * Abstracts Retract message of XMPP PubSub protocol.
  */
 public class XmppRetract extends IQ {
 

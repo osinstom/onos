@@ -50,7 +50,8 @@ import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_ELEMENT;
 import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_NAMESPACE;
 
 /**
- *
+ * The main class implementing XMPP Publish/Subscribe extension.
+ * It listens to IQ stanzas and generates PubSub events based on the payload.
  */
 @Component(immediate = true)
 @Service
